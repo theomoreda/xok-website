@@ -1,0 +1,6 @@
+# Claude Code guidance file — local only, not published
+CLAUDE.md
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
