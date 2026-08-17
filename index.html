@@ -1,10 +1,24 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+<!-- Política de Segurança de Conteúdo (CSP): restringe de onde scripts/estilos/fontes/imagens podem vir.
+     Os scripts inline são liberados por HASH (sha256) — não por 'unsafe-inline' — mantendo a proteção contra XSS.
+     IMPORTANTE: se você editar QUALQUER um dos dois <script> inline desta página (o de cima ou o do fim do <body>),
+     o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
+     recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
+     extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-Rj9El3RSe5uBvIDW6YaRi6gPgQburoYvEeFfR6pPSzg='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self'; form-action 'self'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<script>
+/* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
+   restaurar a posição de rolagem anterior ao recarregar, para a intro sempre tocar do zero
+   (ver o restante do reset em window.scrollTo(0,0) no <script> principal, no fim do <body>) */
+if("scrollRestoration" in history){ history.scrollRestoration = "manual"; }
+</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0a0a" />
-<title>XOK — Dê o seu match de energIA</title>
+<title>XOK: Dê o seu match de energIA</title>
 <meta name="description" content="XOK — dê o seu match de energIA." />
 
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
@@ -30,11 +44,15 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%}
+html{scroll-behavior:smooth}
+/* compensa a altura da .nav fixa para as seções-alvo dos links do header não ficarem cobertas ao rolar até elas */
+#stepsWrap,#waitlist,#corp,#social,#faq{scroll-margin-top:clamp(4.5rem,10vh,6.5rem)}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:var(--f-body);overflow:hidden;
+  font-family:var(--f-body);overflow-x:hidden;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
+html.is-scroll-locked,body.is-scroll-locked{overflow:hidden;height:100%} /* trava a rolagem durante a animação neon do texto1 (ver setupReveal) */
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 ::selection{background:var(--neon);color:#000}
@@ -61,19 +79,17 @@ body.has-cursor,body.has-cursor *{cursor:none}
 }
 
 /* NAV (restored from the previous multi-section version) */
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .nav{position:fixed;inset:0 0 auto 0;z-index:8000;display:flex;align-items:center;justify-content:space-between;
   padding:clamp(1rem,2vw,1.5rem) var(--gutter);transition:background .4s,backdrop-filter .4s,border-color .4s;border-bottom:1px solid transparent}
-.nav.scrolled{background:rgba(10,10,10,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+/* mesmo vidro fosco escuro dos .scard (seção "quatro passos"): fundo quase transparente + blur forte,
+   escurecido apenas pelo que está por baixo — some novamente quando o topo da página está visível */
+.nav.scrolled{background:rgba(255,255,255,.03);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 .nav__logo{font-family:var(--f-display);font-weight:900;font-size:1.5rem;letter-spacing:-.04em;display:flex;align-items:center;gap:.55rem;z-index:2}
-.nav__logo .live{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 10px var(--neon);animation:blink 1.6s var(--ease) infinite}
 .nav__links{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
-  display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:clamp(2.5rem,5vw,5rem);
-  font-family:var(--f-mono);font-weight:500;font-size:.96rem;letter-spacing:.12em;text-transform:uppercase;
+  display:flex;justify-content:center;align-items:center;column-gap:clamp(1.4rem,2.6vw,2.6rem);
+  font-family:var(--f-mono);font-weight:500;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;
   pointer-events:none}
 .nav__links a{position:relative;color:var(--muted);transition:color .3s;pointer-events:auto}
-.nav__links a:first-child{justify-self:end;text-align:right}
-.nav__links a:last-child{justify-self:start;text-align:left}
 .nav__links a::after{content:"";position:absolute;left:0;bottom:-5px;height:1px;width:0;background:var(--neon);transition:width .35s var(--ease)}
 .nav__links a:hover{color:var(--ink)}
 .nav__links a:hover::after{width:100%}
@@ -87,8 +103,8 @@ body.has-cursor,body.has-cursor *{cursor:none}
   .nav__cta{display:none}
 }
 
-/* single static stage */
-.stage{min-height:100svh;display:grid;place-items:center;padding:clamp(.75rem,3vw,2rem)}
+/* (o herói foi unificado ao painel de reveal: ver ".reveal" abaixo, que agora
+   também hospeda o XOK como primeira camada do pin) */
 
 .bigmark{width:min(92vw,1770px);text-align:center;line-height:.78;opacity:0;-webkit-user-select:none;user-select:none}
 .bigmark svg{width:100%;height:auto;display:block;overflow:visible}
@@ -97,162 +113,241 @@ body.has-cursor,body.has-cursor *{cursor:none}
 .bigmark .strokepart{fill:transparent;stroke:var(--ink);stroke-width:1.2}
 .bigmark__tag{
   position:relative;
-  font-family:var(--f-display);font-weight:700;
+  font-family:var(--f-display);font-weight:800;
   font-size:clamp(1rem,4.58vw,4.14rem);letter-spacing:-.01em;
   color:var(--faint);margin-top:clamp(1rem,2.5vh,1.6rem);
 }
+/* "IA" (energIA = inteligência artificial) fica sempre neon. Em dispositivos sem cursor o texto
+   do DOM aparece direto; nos com cursor o paint-reveal deixa o DOM transparente e o canvas pinta
+   o "IA" já em neon (ver drawBase), então passar o mouse por cima não muda nada. */
+.tag-ia{color:var(--neon)}
 /* paint-reveal assume uma única linha; em dispositivos com cursor garantimos isso */
 @media (hover:hover) and (pointer:fine){ .bigmark__tag{white-space:nowrap} }
 .tag-canvas{position:absolute;left:0;width:100%;pointer-events:none;display:none}
 .bigmark__tag.is-painting{color:transparent}
 .bigmark__tag.is-painting .tag-canvas{display:block}
 
-/* ACCESS view (in-page overlay) */
-.access{
+/* SCROLL REVEAL (texto 1 -> texto 2: cor guia a leitura; troca de texto por crossfade no mesmo lugar)
+   .reveal-wrap fica mais alto que a tela (altura extra somada via JS) e .reveal gruda no topo
+   (position:sticky) enquanto essa sobra rola por baixo — assim a rolagem que antecede o "grude"
+   já é natural (sem JS), e o mesmo ScrollTrigger (sem pin) pode iniciar a revelação um pouco antes
+   do texto ficar de fato parado/centralizado. */
+.reveal-wrap{position:relative}
+/* pin do herói/intro: XOK+tagline, texto1 e texto2 ocupam a MESMA célula e são trocados por
+   opacidade. Sem JS (fallback) as camadas empilham verticalmente e ficam todas legíveis. */
+.reveal{position:sticky;top:0;min-height:100svh;display:grid;justify-items:center;align-items:center;row-gap:clamp(1.5rem,4vh,2.5rem);padding:clamp(4rem,15vh,5rem) var(--gutter) clamp(1.5rem,6vh,3rem)}
+.reveal.is-overlaid{grid-template-areas:"layer"} /* com JS: sobrepõe XOK e textos numa única célula */
+.reveal.is-overlaid > *{grid-area:layer;min-width:0}
+.reveal__inner{max-width:920px;margin:0 auto}
+.reveal__stack{display:grid;row-gap:clamp(1.5rem,4vh,2.5rem)} /* sem JS: os dois textos empilham normalmente, ambos legíveis */
+.reveal__stack.is-enhanced > .reveal__text{grid-column:1;grid-row:1} /* com JS: sobrepõe os dois na mesma célula p/ o crossfade */
+.reveal__text{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;line-height:1.42;font-size:clamp(1.5rem,3.6vw,2.6rem);color:var(--faint);text-align:center;opacity:0} /* opacity:0 evita flash antes do JS revelar; o fallback reativa via JS */
+.reveal__text .word{color:inherit}
+
+/* SCROLL DOWN — ícone de mouse minimalista (cápsula + indicador) exibido assim que o texto1
+   termina de ficar neon (ver introSeq.onComplete em setupReveal); some no primeiro scroll do usuário */
+.scrolldown{position:absolute;left:50%;bottom:clamp(1.25rem,4vh,2.25rem);transform:translateX(-50%);opacity:0;pointer-events:none;transition:opacity .5s var(--ease)}
+.scrolldown.is-visible{opacity:1}
+.scrolldown__mouse{display:block;width:24px;height:38px;border:2px solid var(--ink);border-radius:14px;position:relative}
+.scrolldown__dot{position:absolute;top:6px;left:50%;width:4px;height:8px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
+.scrolldown.is-visible .scrolldown__dot{animation:scrolldown-move 1.5s var(--ease) infinite} /* só anima enquanto visível */
+@keyframes scrolldown-move{
+  0%{transform:translate(-50%,0);opacity:1}
+  60%{transform:translate(-50%,12px);opacity:0}
+  61%{transform:translate(-50%,0);opacity:0}
+  100%{transform:translate(-50%,0);opacity:1}
+}
+
+/* STEPS (4 passos) — mesmo padrão do .reveal-wrap: ".steps" gruda no topo (sticky) dentro de um
+   wrapper mais alto (altura extra somada via JS), e um ScrollTrigger com scrub revela os cards um a
+   um em diagonal (sudeste), desfocando o card anterior a cada novo card revelado. Sem JS/Scroll-
+   Trigger ou com motion reduzido, os cards ficam em coluna normal (sem sobreposição), todos legíveis. */
+.steps-wrap{position:relative}
+.steps{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(2rem,4vh,3rem);padding:clamp(2rem,5vh,3.5rem) var(--gutter)}
+.steps__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.01em;line-height:1.25;font-size:clamp(1.9rem,4.4vw,3.1rem);color:var(--ink);text-align:center;max-width:840px;margin:0 auto}
+.steps__stack{--card-size:clamp(210px,16vw,300px);--step-y:clamp(2rem,4.5vw,3.5rem);display:grid;row-gap:1.25rem;width:var(--card-size);max-width:90vw;margin:0 auto} /* sem JS: cards empilham normalmente em coluna, todos legíveis */
+.steps__stack.is-enhanced{display:block;position:relative;width:min(100%,1500px);height:calc(var(--card-size) + var(--step-y)*3);margin:0 auto} /* com JS: ocupa toda a largura útil da seção — card 1 na ponta esquerda, card 4 na ponta direita */
+@media(max-width:600px){
+  .steps__stack{--card-size:clamp(160px,44vw,210px);--step-y:clamp(1.25rem,5vw,2rem)}
+}
+/* fontes e espaçamento derivados diretamente de --card-size (em vez de clamp/vw próprios) para que a
+   proporção de texto por área continue igual em qualquer tamanho de card — garante quadrado perfeito
+   (width = height = --card-size) sem sobra de espaço nem estouro de texto */
+.scard{border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.03);backdrop-filter:blur(18px);
+  width:var(--card-size);height:var(--card-size);padding:calc(var(--card-size)*.085);overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center}
+.steps__stack.is-enhanced .scard{position:absolute;top:0;will-change:transform,opacity,filter}
+/* espalha os 4 cards ao longo de toda a largura do container (0% -> 100%-card), formando a escadinha diagonal mais longa possível */
+.steps__stack.is-enhanced .scard:nth-child(1){top:0;left:0%;z-index:1}
+.steps__stack.is-enhanced .scard:nth-child(2){top:var(--step-y);left:calc((100% - var(--card-size)) * 0.333);z-index:2}
+.steps__stack.is-enhanced .scard:nth-child(3){top:calc(var(--step-y)*2);left:calc((100% - var(--card-size)) * 0.667);z-index:3}
+.steps__stack.is-enhanced .scard:nth-child(4){top:calc(var(--step-y)*3);left:calc(100% - var(--card-size));z-index:4}
+.scard__num{font-family:var(--f-mono);font-weight:600;font-size:calc(var(--card-size)*.045);letter-spacing:.12em;color:var(--neon);display:block}
+.scard__title{font-family:var(--f-display);font-weight:700;font-size:calc(var(--card-size)*.076);line-height:1.15;letter-spacing:-.01em;color:var(--ink);margin:calc(var(--card-size)*.045) 0 calc(var(--card-size)*.03)}
+.scard__desc{font-family:var(--f-body);font-size:calc(var(--card-size)*.058);line-height:1.4;color:var(--muted);margin:0}
+
+/* WAITLIST (lista de espera embutida na página, não é overlay) — coluna esquerda com título,
+   descrição e 2 cards; coluna direita com o formulário completo de cadastro. */
+.waitlist{padding:clamp(4rem,10vh,7rem) var(--gutter);position:relative}
+.waitlist__inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(2.5rem,6vw,5rem);align-items:start}
+@media(max-width:900px){.waitlist__inner{grid-template-columns:1fr}}
+
+/* acima de 900px o formulário é bem mais alto que o bloco de texto; a coluna
+   esquerda gruda no topo (abaixo do nav fixo) e acompanha a rolagem do
+   formulário em vez de deixar um vazio na metade inferior */
+.waitlist__intro{position:sticky;top:6.5rem;z-index:2} /* z-index:2 -> acima dos cards que entram por trás (fixos, z-index:1) */
+@media(max-width:900px){.waitlist__intro{position:static}}
+
+.waitlist__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.12;font-size:clamp(2rem,4vw,2.9rem);color:var(--ink);margin:0}
+.waitlist__desc{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:clamp(1rem,1.3vw,1.12rem);line-height:1.6;max-width:46ch;margin:clamp(1.2rem,3vh,1.8rem) 0 0}
+.waitlist__cards{display:grid;gap:clamp(.9rem,1.8vw,1.2rem);margin-top:clamp(2rem,5vh,3rem)}
+.wcard{border:1px solid var(--line);border-radius:16px;padding:clamp(1.3rem,2.6vw,1.8rem);background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);transition:border-color .4s var(--ease),transform .4s var(--ease)}
+.wcard:hover{border-color:var(--neon);transform:translateY(-3px)}
+.wcard__title{font-family:var(--f-display);font-weight:700;font-size:clamp(1.05rem,1.6vw,1.25rem);letter-spacing:-.01em;color:var(--ink);margin:0 0 .55rem}
+.wcard__desc{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.94rem;line-height:1.55;margin:0}
+
+.waitlist__panel{position:relative;z-index:2;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);overflow:hidden} /* z-index:2 -> o formulário fica na frente dos cards que entram por trás dele */
+.wform__head{display:flex;align-items:center;background:#000;padding:.9rem clamp(1.1rem,2.4vw,1.6rem)}
+.wform__eyebrow{font-family:var(--f-mono);font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+
+.wform{padding:clamp(1.4rem,3vw,2.2rem) clamp(1.4rem,3vw,2.2rem) .5rem}
+.wform>*+*{margin-top:2.4rem}
+.wform__row{display:grid;gap:clamp(.9rem,1.8vw,1.2rem)}
+.wform__row--2{grid-template-columns:1fr 1fr}
+@media(max-width:520px){.wform__row--2{grid-template-columns:1fr}}
+
+.wf{display:flex;flex-direction:column;gap:.5rem}
+.wf__label{font-family:var(--f-mono);font-weight:600;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.wf__input,.wf__select{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem;font-family:var(--f-body);font-weight:500;font-size:.98rem;color:var(--ink);transition:border-color .3s,background .3s}
+.wf__input::placeholder{color:var(--faint)}
+.wf__input:focus,.wf__select:focus{outline:none;border-color:var(--neon);background:rgba(255,255,255,.05)}
+.wf__select{appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='rgba(255,255,255,.56)' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;background-size:14px;padding-right:2.4rem}
+.wf__select option{background:var(--bg);color:var(--ink)}
+.wf__hint{font-family:var(--f-body);font-size:.82rem;color:var(--faint);line-height:1.5;margin:0}
+
+.wf__opts{display:flex;flex-wrap:wrap;gap:.6rem}
+.wf__opt{border:1px solid var(--line);border-radius:10px;padding:.7rem 1rem;font-family:var(--f-body);font-weight:500;font-size:.92rem;color:var(--muted);background:rgba(255,255,255,.02);cursor:pointer;transition:border-color .25s,color .25s,background .25s}
+.wf__opt:hover{border-color:var(--line-strong);color:var(--ink)}
+.wf__opt.is-active{border-color:var(--neon);color:var(--ink);background:rgba(226,255,0,.09)}
+
+.wf__drop{border:1px dashed var(--line-strong);border-radius:14px;padding:clamp(1.3rem,3vw,1.9rem);text-align:center;cursor:pointer;transition:border-color .3s,background .3s}
+.wf__drop:hover,.wf__drop.is-dragover{border-color:var(--neon);background:rgba(226,255,0,.04)}
+.wf__drop-t{font-family:var(--f-body);font-weight:600;color:var(--ink);font-size:.96rem;margin:0 0 .3rem}
+.wf__drop-d{font-family:var(--f-body);font-size:.84rem;color:var(--muted);margin:0}
+.wf__drop-link{color:var(--neon);text-decoration:underline}
+.wf__file{display:none}
+.wf__filename{display:none;margin:.7rem 0 0;font-family:var(--f-mono);font-size:.8rem;color:var(--ink);align-items:center;justify-content:center;gap:.5rem}
+.wf__filename.is-visible{display:flex}
+.wf__file-remove{color:var(--faint);cursor:pointer;text-decoration:underline}
+
+.wf__check{display:flex;gap:.7rem;align-items:flex-start;cursor:pointer}
+.wf__check input{margin-top:.2rem;accent-color:var(--neon);width:16px;height:16px;flex:0 0 auto}
+.wf__check span{font-family:var(--f-body);font-size:.86rem;line-height:1.5;color:var(--muted)}
+.wf__check a{color:var(--ink);text-decoration:underline}
+
+.wform__submit{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:1rem;color:#0a0a0a;background:var(--neon);border:none;border-radius:10px;padding:1rem 1.6rem;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.wform__submit:hover{transform:translateY(-2px);box-shadow:0 12px 34px -12px rgba(226,255,0,.55)}
+.wform__err{font-family:var(--f-body);font-weight:500;font-size:.86rem;color:#ff6b6b;margin:.5rem 0 0}
+.wform__err:empty{display:none;margin:0}
+.wform__foot{text-align:center;font-family:var(--f-body);font-size:.8rem;color:var(--faint);margin:0;padding:0 clamp(1.4rem,3vw,2.2rem) clamp(1.4rem,3vw,2.2rem)}
+
+.wform__done{display:none;text-align:center;padding:clamp(2rem,5vh,3rem) clamp(1.4rem,3vw,2.2rem)}
+.wform__done .check{margin-left:auto;margin-right:auto}
+.wform__done .join__done-t{font-size:clamp(1.3rem,2.4vw,1.6rem)}
+.wform__done .join__done-d{max-width:40ch;margin-left:auto;margin-right:auto}
+
+/* CORP (seção para empresas, embutida na página, fundo amarelo neon) */
+.corp{background:var(--neon);padding:clamp(4rem,10vh,7rem) var(--gutter)}
+.corp__inner{max-width:1280px;margin:0 auto}
+.corp__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;font-size:clamp(2rem,4.2vw,3.2rem);color:#0a0a0a;max-width:22ch;margin:0 0 clamp(2.5rem,6vh,4rem)}
+.corp__cards{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.2rem,2.4vw,1.8rem)}
+@media(max-width:820px){.corp__cards{grid-template-columns:1fr}}
+.ccard{display:flex;flex-direction:column;gap:1rem;background:#0a0a0a;border-radius:20px;padding:clamp(1.6rem,3vw,2.4rem);transition:transform .4s var(--ease)}
+.ccard:hover{transform:translateY(-4px)}
+.ccard__title{font-family:var(--f-display);font-weight:700;font-size:clamp(1.2rem,2vw,1.5rem);letter-spacing:-.01em;color:#fff;margin:0}
+.ccard__desc{font-family:var(--f-body);font-weight:500;font-size:.98rem;line-height:1.6;color:rgba(255,255,255,.7);margin:0;flex:1}
+.ccard__btn{align-self:flex-start;display:inline-flex;align-items:center;gap:.55rem;font-family:var(--f-body);font-weight:600;font-size:.88rem;color:var(--neon);border:1px solid rgba(255,255,255,.24);border-radius:100px;padding:.8rem 1.3rem;transition:background .3s,color .3s,border-color .3s}
+.ccard__btn:hover{background:var(--neon);color:#0a0a0a;border-color:var(--neon)}
+.ccard__btn .arr{display:inline-block;transition:transform .35s var(--ease)}
+.ccard__btn:hover .arr{transform:translateX(4px)}
+.arr svg{width:1em;height:1em;display:block} /* seta minimalista (chevron) usada em todos os botões com .arr, tamanho relativo ao font-size do botão pai (1.5x do tamanho original de .62em) */
+
+/* SOCIAL (seção com prévia dos posts do Instagram @xokenergia, fundo preto igual às demais seções) */
+.social{background:var(--bg);padding:clamp(4rem,10vh,7rem) var(--gutter)}
+.social__inner{max-width:1280px;margin:0 auto}
+.social__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;font-size:clamp(2rem,4.2vw,3.2rem);color:var(--ink);text-align:center;max-width:26ch;margin:0 auto clamp(2.5rem,6vh,4rem)}
+.social__title .hl{font-style:normal;color:var(--neon)}
+.social__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:clamp(1.2rem,2.4vw,1.8rem)}
+.scard{position:relative;display:block;aspect-ratio:4/5;border-radius:20px;overflow:hidden;background:#111}
+.scard__img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s var(--ease)}
+.scard:hover .scard__img{transform:scale(1.05)}
+
+/* FAQ (acordeão de perguntas frequentes, logo abaixo da seção social, fundo preto igual às demais seções) */
+.faq{background:var(--bg);padding:clamp(4rem,10vh,7rem) var(--gutter)}
+.faq__inner{max-width:860px;margin:0 auto}
+.faq__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;font-size:clamp(2rem,4.2vw,3.2rem);color:var(--ink);text-align:center;margin:0 auto clamp(2.5rem,6vh,4rem)}
+.faq__list{display:flex;flex-direction:column;gap:.9rem}
+/* <details>/<summary> nativos: acordeão sem JS extra, coerente com o resto do site não ter dependências além do GSAP */
+.faq-item{border:1px solid var(--line);border-radius:16px;padding:0 clamp(1.3rem,3vw,2rem);background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);transition:border-color .4s var(--ease)}
+.faq-item:hover{border-color:var(--line-strong)}
+.faq-item[open]{border-color:var(--neon)}
+.faq-item__q{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:clamp(1.2rem,2.6vw,1.6rem) 0;font-family:var(--f-display);font-weight:700;font-size:clamp(1.02rem,1.8vw,1.22rem);letter-spacing:-.01em;color:var(--ink)}
+.faq-item__q::-webkit-details-marker{display:none} /* remove o marcador padrão do <summary> no Safari/Chrome, substituído pelo .faq-item__icon */
+.faq-item__icon{flex:none;width:1.6rem;height:1.6rem;border-radius:50%;border:1px solid var(--line-strong);position:relative;transition:transform .4s var(--ease),border-color .4s,background .4s}
+.faq-item__icon::before,.faq-item__icon::after{content:"";position:absolute;top:50%;left:50%;background:var(--muted);transition:background .3s,transform .3s var(--ease)}
+.faq-item__icon::before{width:.6rem;height:1.5px;transform:translate(-50%,-50%)}
+.faq-item__icon::after{width:1.5px;height:.6rem;transform:translate(-50%,-50%)}
+.faq-item[open] .faq-item__icon{border-color:var(--neon);background:var(--neon)}
+.faq-item[open] .faq-item__icon::before,.faq-item[open] .faq-item__icon::after{background:#0a0a0a}
+.faq-item[open] .faq-item__icon::after{transform:translate(-50%,-50%) scaleY(0)} /* funde os dois traços do "+" num "-" quando aberto */
+.faq-item__a{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.98rem;line-height:1.65;max-width:64ch;margin:0 0 clamp(1.2rem,2.6vw,1.6rem)}
+
+/* FOOTER (rodapé estático ao fim do fluxo normal da página, logo abaixo do FAQ, fundo preto igual às demais seções) */
+.footer{background:var(--bg);border-top:1px solid var(--line);padding:clamp(2.4rem,6vh,3.6rem) var(--gutter) clamp(1.6rem,4vh,2.2rem)}
+.footer__inner{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(1.6rem,4vh,2.4rem)}
+.footer__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}
+.footer__logo{font-family:var(--f-display);font-weight:900;font-size:clamp(2.2rem,4vw,3rem);letter-spacing:-.04em}
+.footer__links{display:flex;flex-wrap:wrap;align-items:center;gap:clamp(1.4rem,3vw,2.2rem);font-family:var(--f-mono);font-weight:500;font-size:.86rem;letter-spacing:.1em;text-transform:uppercase}
+.footer__links a{position:relative;color:var(--muted);transition:color .3s}
+.footer__links a::after{content:"";position:absolute;left:0;bottom:-4px;height:1px;width:0;background:var(--neon);transition:width .35s var(--ease)}
+.footer__links a:hover{color:var(--ink)}
+.footer__links a:hover::after{width:100%}
+.footer__bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;padding-top:clamp(1.6rem,4vh,2.2rem);border-top:1px solid var(--line)}
+.footer__copy,.footer__policy{font-family:var(--f-body);font-weight:500;font-size:.82rem;color:var(--faint);margin:0}
+.footer__policy{transition:color .3s}
+.footer__policy:hover{color:var(--ink)}
+@media(max-width:560px){.footer__top,.footer__bottom{flex-direction:column;align-items:flex-start}}
+
+/* LEAD (modais "Vamos conversar" abertos pelos botões da seção .corp) */
+.lead{
   position:fixed;inset:0;z-index:8700;background:var(--bg);
   display:grid;grid-template-rows:auto 1fr;gap:clamp(1.5rem,4vh,3rem);
   padding:clamp(1.4rem,3.5vw,2.6rem) var(--gutter) clamp(2rem,5vh,3.5rem);
   opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;
 }
-.access.is-open{visibility:visible;pointer-events:auto}
-.access__top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
-.access__back{
-  display:inline-flex;align-items:center;gap:.55rem;
-  font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:.6rem 1.1rem;
-  transition:color .3s,border-color .3s;
-}
-.access__back:hover{color:var(--ink);border-color:var(--line-strong)}
-.access__back .arr{display:inline-block;transition:transform .35s var(--ease)}
-.access__back:hover .arr{transform:translateX(-4px)}
-.access__brand{font-family:var(--f-display);font-weight:900;font-size:1.4rem;letter-spacing:-.04em}
+.lead.is-open{visibility:visible;pointer-events:auto}
+.lead__top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.lead__back{display:inline-flex;align-items:center;gap:.55rem;font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:.6rem 1.1rem;transition:color .3s,border-color .3s;cursor:pointer;background:none}
+.lead__back:hover{color:var(--ink);border-color:var(--line-strong)}
+.lead__back .arr{display:inline-block;transition:transform .35s var(--ease)}
+.lead__back:hover .arr{transform:translateX(-4px)}
+.lead__brand{font-family:var(--f-display);font-weight:900;font-size:1.4rem;letter-spacing:-.04em}
+.lead__inner{width:100%;max-width:760px;margin:0 auto;align-self:safe center}
+.lead__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.05;font-size:clamp(2rem,5vw,3.2rem);margin:0}
+.lead__sub{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:52ch;font-size:clamp(1rem,1.4vw,1.12rem);line-height:1.55;margin:clamp(1rem,2.5vh,1.4rem) 0 0}
+.lead__form{margin:clamp(1.6rem,4vh,2.6rem) 0 0}
+.lead__form>*+*{margin-top:clamp(1.1rem,2.4vw,1.6rem)}
+.wf__optional{text-transform:none;letter-spacing:0;font-weight:500;color:var(--faint)} /* suaviza o sufixo "(opcional)" dentro de .wf__label, que por padrão é maiúsculo/espaçado */
+textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:var(--f-body)}
 
-.access__inner{width:100%;max-width:1040px;margin:0 auto;align-self:safe center}
-.access__eyebrow{font-family:var(--f-body);font-weight:500;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--neon);margin:0 0 1.2rem}
-.access__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:.95;font-size:clamp(2.6rem,8vw,6rem);margin:0}
-.access__intro{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:52ch;font-size:clamp(1rem,1.4vw,1.18rem);margin:clamp(1.2rem,3vh,2rem) 0 0;line-height:1.5}
-
-.access__cards{display:grid;gap:clamp(.8rem,1.5vw,1.1rem);margin-top:clamp(2rem,5vh,3.2rem)}
-.acard{
-  display:grid;grid-template-columns:1fr auto;align-items:center;gap:clamp(1rem,3vw,2.4rem);
-  border:1px solid var(--line);border-radius:16px;padding:clamp(1.3rem,3vw,2rem);
-  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);
-  transition:border-color .4s var(--ease),transform .4s var(--ease),background .4s;
-}
-.acard:hover{border-color:var(--neon);transform:translateY(-3px)}
-.acard__idx{font-family:var(--f-body);font-weight:500;font-size:.8rem;letter-spacing:.18em;color:var(--neon)}
-.acard__body{display:flex;flex-direction:column;gap:.45rem;min-width:0}
-.acard__title{font-family:var(--f-display);font-weight:800;font-size:clamp(1.35rem,3vw,2.1rem);letter-spacing:-.02em;line-height:1.02}
-.acard__desc{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.98rem;max-width:44ch}
-.acard__cta{display:flex;align-items:center;gap:.9rem;white-space:nowrap}
-.acard__status{font-family:var(--f-body);font-weight:500;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);transition:color .3s}
-.acard:hover .acard__status{color:var(--ink)}
-.acard__arrow{font-size:1.35rem;color:var(--neon);transition:transform .4s var(--ease)}
-.acard:hover .acard__arrow{transform:translate(5px,-5px)}
-.acard--pending{opacity:.45;cursor:not-allowed}
-.acard--pending:hover{border-color:var(--line);transform:none}
-.acard--pending .acard__arrow{color:var(--faint);transform:none}
-
-.access__note{font-family:var(--f-body);font-weight:500;font-size:.8rem;letter-spacing:.02em;color:var(--faint);max-width:60ch;margin:clamp(2rem,5vh,3rem) 0 0;line-height:1.6}
-
-@media(max-width:640px){
-  .acard{grid-template-columns:1fr;gap:1rem}
-  .acard__cta{justify-content:space-between}
-}
-
-/* ABOUT view (in-page overlay) */
-.about{
-  position:fixed;inset:0;z-index:8700;background:var(--bg);
-  display:grid;grid-template-rows:auto 1fr;gap:clamp(1.5rem,4vh,3rem);
-  padding:clamp(1.4rem,3.5vw,2.6rem) var(--gutter) clamp(2rem,5vh,3.5rem);
-  opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;
-}
-.about.is-open{visibility:visible;pointer-events:auto}
-.about__top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
-.about__back{
-  display:inline-flex;align-items:center;gap:.55rem;
-  font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:.6rem 1.1rem;
-  transition:color .3s,border-color .3s;
-}
-.about__back:hover{color:var(--ink);border-color:var(--line-strong)}
-.about__back .arr{display:inline-block;transition:transform .35s var(--ease)}
-.about__back:hover .arr{transform:translateX(-4px)}
-.about__brand{font-family:var(--f-display);font-weight:900;font-size:1.4rem;letter-spacing:-.04em}
-
-.about__inner{width:100%;max-width:1100px;margin:0 auto;align-self:safe center}
-
-.about__h{font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.06;font-size:clamp(2.3rem,7vw,5.4rem);margin:0}
-.about__h .line{display:block;overflow:hidden;padding-bottom:.06em}
-.about__h .line>span{display:block}
-.about__h .hl,.about__statement .hl{font-style:normal;color:var(--neon)}
-
-.about__lead{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:62ch;font-size:clamp(1rem,1.45vw,1.18rem);line-height:1.55;margin:clamp(1.4rem,3vh,2.2rem) 0 0}
-
-.about__rule{height:1px;background:var(--line);transform:scaleX(0);transform-origin:left;margin:clamp(1.8rem,4vh,2.8rem) 0 0}
-
-.about__pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.8rem,1.6vw,1.2rem);margin-top:clamp(1.8rem,4vh,2.8rem)}
-.pill{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:clamp(1.2rem,2.4vw,1.8rem);
-  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);
-  transition:border-color .4s var(--ease),transform .4s var(--ease),background .4s}
-.pill::before{content:"";position:absolute;left:0;top:0;height:2px;width:100%;background:var(--neon);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
-.pill:hover{border-color:var(--neon);transform:translateY(-4px)}
-.pill:hover::before{transform:scaleX(1)}
-.pill__t{font-family:var(--f-display);font-weight:800;font-size:clamp(1.25rem,2.3vw,1.6rem);letter-spacing:-.02em;line-height:1.05;margin:0 0 .6rem}
-.pill__d{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.95rem;line-height:1.5}
-
-.about__ctx{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:clamp(1.2rem,3vw,2.6rem);margin-top:clamp(2rem,5vh,3.4rem);padding-top:clamp(1.6rem,4vh,2.6rem);border-top:1px solid var(--line)}
-.about__num{font-family:var(--f-display);font-weight:800;font-size:clamp(3rem,9vw,6rem);letter-spacing:-.04em;color:var(--neon);line-height:.9;font-variant-numeric:tabular-nums}
-.about__cap{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:48ch;font-size:clamp(.98rem,1.3vw,1.12rem);line-height:1.5}
-.about__src{display:block;margin-top:.7rem;font-size:.72rem;letter-spacing:.03em;color:var(--faint)}
-
-.about__statement{font-family:var(--f-display);font-weight:700;letter-spacing:-.02em;line-height:1.18;font-size:clamp(1.4rem,3vw,2.1rem);color:var(--ink);max-width:30ch;margin:clamp(2rem,5vh,3.4rem) 0 0}
-
-@media(max-width:820px){.about__pillars{grid-template-columns:1fr}}
-@media(max-width:640px){.about__ctx{grid-template-columns:1fr;gap:.5rem}}
-
-/* JOIN (lista de espera) view */
-.join{
-  position:fixed;inset:0;z-index:8700;background:var(--bg);
-  display:grid;grid-template-rows:auto 1fr;gap:clamp(1.5rem,4vh,3rem);
-  padding:clamp(1.4rem,3.5vw,2.6rem) var(--gutter) clamp(2rem,5vh,3.5rem);
-  opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;
-}
-.join.is-open{visibility:visible;pointer-events:auto;opacity:1}
-.join__top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
-.join__back{display:inline-flex;align-items:center;gap:.55rem;font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:.6rem 1.1rem;transition:color .3s,border-color .3s;cursor:pointer;background:none}
-.join__back:hover{color:var(--ink);border-color:var(--line-strong)}
-.join__back .arr{display:inline-block;transition:transform .35s var(--ease)}
-.join__back:hover .arr{transform:translateX(-4px)}
-.join__brand{font-family:var(--f-display);font-weight:900;font-size:1.4rem;letter-spacing:-.04em}
-.join__inner{width:100%;max-width:760px;margin:0 auto;align-self:safe center}
-.join__h{font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.04;font-size:clamp(2.4rem,6.5vw,4.4rem);margin:0}
-.join__h .line{display:block;overflow:hidden;padding-bottom:.06em}
-.join__h .line>span{display:block}
-.join__h .hl{font-style:normal;color:var(--neon)}
-.join__sub{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:50ch;font-size:clamp(1rem,1.4vw,1.18rem);line-height:1.55;margin:clamp(1.3rem,3vh,2rem) 0 0}
-.join__form{display:flex;flex-wrap:wrap;gap:clamp(.8rem,1.6vw,1.1rem);align-items:flex-end;margin:clamp(1.6rem,4vh,2.6rem) 0 0}
-.field{position:relative;flex:1 1 320px;min-width:0;padding-top:1.1em}
-.field__input{width:100%;background:transparent;border:none;outline:none;font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(1.4rem,2.6vw,2rem);color:var(--ink);padding:.35rem 0 .9rem}
-.field__input::placeholder{color:transparent}
-.field__label{position:absolute;left:0;top:1.1em;pointer-events:none;font-family:var(--f-body);font-weight:500;color:var(--faint);font-size:clamp(1.4rem,2.6vw,2rem);transform-origin:left top;transition:transform .3s var(--ease),color .3s}
-.field__input:focus ~ .field__label,
-.field__input:not(:placeholder-shown) ~ .field__label{transform:translateY(-1.15em) scale(.5);color:var(--muted)}
-.field__line{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line-strong)}
-.field__line::after{content:"";position:absolute;left:0;bottom:0;height:100%;width:100%;background:var(--neon);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
-.field__input:focus ~ .field__line::after{transform:scaleX(1)}
-.join__submit{flex:0 0 auto;display:inline-flex;align-items:center;gap:.55rem;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:1rem;letter-spacing:.01em;color:#0a0a0a;background:var(--neon);border:none;border-radius:100px;padding:.95rem 1.6rem;transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
-.join__submit:hover{transform:translateY(-2px);box-shadow:0 12px 34px -12px rgba(226,255,0,.55)}
-.join__submit .arr{display:inline-block;transition:transform .35s var(--ease)}
-.join__submit:hover .arr{transform:translateX(4px)}
-.join__err{flex:1 1 100%;font-family:var(--f-body);font-weight:500;font-size:.9rem;color:#ff6b6b;min-height:1.1em;margin:.4rem 0 0}
-.join__note{font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.02em;color:var(--faint);margin:clamp(1rem,2.5vh,1.4rem) 0 0}
-.join__done{display:none;margin:clamp(1.4rem,3.5vh,2.4rem) 0 0}
+/* elementos de estado "sucesso" (check morphing) reaproveitados em .wform__done e nos .lead
+   (waitlist, leadSupplier, leadInstitutional) — mantidos após a remoção dos overlays #about/#join */
 .check{width:54px;height:54px;display:block;margin:0 0 1.1rem}
 .check__circle,.check__mark{fill:none;stroke:var(--neon);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .join__done-t{font-family:var(--f-display);font-weight:800;font-size:clamp(1.5rem,3vw,2.2rem);letter-spacing:-.02em;line-height:1.05;margin:0}
 .join__done-d{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:44ch;font-size:clamp(1rem,1.3vw,1.12rem);line-height:1.55;margin:.7rem 0 0}
-@media(max-width:560px){.join__submit{flex:1 1 100%;justify-content:center}}
 
 /* ===== MENU MÓVEL (≤860px) ===== */
 @keyframes navToggleIn{from{opacity:0}to{opacity:1}}
@@ -270,29 +365,33 @@ body.has-cursor,body.has-cursor *{cursor:none}
 
 .mobnav{
   position:fixed;inset:0;z-index:8650;background:rgba(10,10,10,.98);backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;justify-content:center;gap:clamp(1.4rem,5vh,2.4rem);
+  display:flex;flex-direction:column;justify-content:center;gap:clamp(1rem,4vh,2rem);
   padding:clamp(5rem,16vh,7rem) var(--gutter) clamp(2.2rem,7vh,3.5rem);
-  opacity:0;visibility:hidden;pointer-events:none;
+  opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;
   transition:opacity .4s var(--ease),visibility .4s;
 }
 .mobnav.is-open{opacity:1;visibility:visible;pointer-events:auto}
-.mobnav__links{display:flex;flex-direction:column;gap:clamp(.5rem,2vh,1rem)}
+.mobnav__links{display:flex;flex-direction:column;gap:clamp(.3rem,1.4vh,.6rem)}
 .mobnav__link{
-  font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.02;
-  font-size:clamp(2.6rem,12vw,4rem);color:var(--ink);text-align:left;
+  font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.05;
+  font-size:clamp(1.8rem,8vw,2.8rem);color:var(--ink);text-align:left;
+  margin:0;padding:0;
   opacity:0;transform:translateY(18px);transition:color .3s;
 }
 .mobnav.is-open .mobnav__link{opacity:1;transform:translateY(0);transition:opacity .55s var(--ease),transform .55s var(--ease),color .3s}
 .mobnav.is-open .mobnav__link:nth-child(1){transition-delay:.06s,.06s,0s}
-.mobnav.is-open .mobnav__link:nth-child(2){transition-delay:.13s,.13s,0s}
+.mobnav.is-open .mobnav__link:nth-child(2){transition-delay:.11s,.11s,0s}
+.mobnav.is-open .mobnav__link:nth-child(3){transition-delay:.16s,.16s,0s}
+.mobnav.is-open .mobnav__link:nth-child(4){transition-delay:.21s,.21s,0s}
+.mobnav.is-open .mobnav__link:nth-child(5){transition-delay:.26s,.26s,0s}
 .mobnav__link:hover,.mobnav__link:active{color:var(--neon)}
 .mobnav__cta{
-  align-self:flex-start;margin-top:clamp(1.2rem,3vh,2rem);
+  align-self:flex-start;margin-top:clamp(.8rem,2.4vh,1.6rem);
   font-family:var(--f-body);font-weight:600;font-size:1.05rem;letter-spacing:.01em;color:#0a0a0a;
   background:var(--neon);border-radius:100px;padding:1rem 1.8rem;display:inline-flex;align-items:center;gap:.55rem;
   opacity:0;transform:translateY(18px);
 }
-.mobnav.is-open .mobnav__cta{opacity:1;transform:translateY(0);transition:opacity .55s var(--ease) .2s,transform .55s var(--ease) .2s}
+.mobnav.is-open .mobnav__cta{opacity:1;transform:translateY(0);transition:opacity .55s var(--ease) .32s,transform .55s var(--ease) .32s}
 .mobnav__cta .arr{display:inline-block;transition:transform .35s var(--ease)}
 .mobnav__cta:hover .arr{transform:translateX(4px)}
 .mobnav__foot{margin-top:clamp(1.6rem,5vh,2.6rem);font-family:var(--f-body);font-weight:500;font-size:.8rem;letter-spacing:.02em;color:var(--faint)}
@@ -308,15 +407,25 @@ body.has-cursor,body.has-cursor *{cursor:none}
 @media(min-width:861px){ .mobnav{display:none} }
 @media(max-width:860px){ .nav__toggle{display:inline-flex;animation:navToggleIn .6s var(--ease) .35s both} }
 
+/* ===== HERÓI em tela de celular (≤860px): sem o ícone de "role o mouse" (não faz sentido em
+   touch) e a tagline sempre quebrando linha em vez de estourar a largura da tela — sobrepõe o
+   white-space:nowrap de (hover:hover) e (pointer:fine), que alguns aparelhos híbridos (touch +
+   mouse/trackpad) continuam reportando mesmo em telas estreitas ===== */
+@media(max-width:860px){
+  .scrolldown{display:none}
+  .bigmark__tag{white-space:normal}
+}
+
 /* ===== Viewports muito baixos (paisagem / janelas curtas): evita corte do herói ===== */
 @media (max-height:500px){
-  .stage{padding-top:clamp(4rem,15vh,5rem)}
+  .reveal{padding-top:clamp(2rem,8vh,3.5rem)}
   .bigmark{width:min(74vw,1100px)}
   .bigmark__tag{font-size:clamp(1.45rem,5vh,2.4rem);margin-top:clamp(.35rem,1.5vh,.9rem)}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   .grain{display:none}
+  html{scroll-behavior:auto}
 }
 </style>
 </head>
@@ -325,12 +434,14 @@ body.has-cursor,body.has-cursor *{cursor:none}
 <div class="grain" aria-hidden="true"></div>
 
 <nav class="nav" id="nav" aria-label="Principal">
-  <a href="#" class="nav__logo" data-cursor>XOK<span class="live" aria-hidden="true"></span></a>
+  <a href="#" class="nav__logo" data-cursor>XOK</a>
   <div class="nav__links">
-    <a href="#" id="navSobre">Sobre</a>
-    <a href="#" id="navAcesso">Acesso</a>
+    <a href="#stepsWrap" id="navSolucao">Solução</a>
+    <a href="#corp" id="navEmpresas">Empresas</a>
+    <a href="#social" id="navRedes">Redes</a>
+    <a href="#faq" id="navFaq">FAQ</a>
   </div>
-  <a href="#" id="navCta" class="nav__cta" data-cursor>Entrar na lista</a>
+  <a href="#waitlist" id="navParticipar" class="nav__cta" data-cursor>Participar</a>
   <button class="nav__toggle" id="navToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobnav">
     <span aria-hidden="true"></span><span aria-hidden="true"></span>
   </button>
@@ -341,147 +452,483 @@ body.has-cursor,body.has-cursor *{cursor:none}
     <span aria-hidden="true"></span><span aria-hidden="true"></span>
   </button>
   <nav class="mobnav__links" aria-label="Navegação">
-    <button class="mobnav__link" id="mSobre" type="button">Sobre</button>
-    <button class="mobnav__link" id="mAcesso" type="button">Acesso</button>
+    <a class="mobnav__link" href="#stepsWrap" id="mSolucao">Solução</a>
+    <a class="mobnav__link" href="#corp" id="mEmpresas">Empresas</a>
+    <a class="mobnav__link" href="#social" id="mRedes">Redes</a>
+    <a class="mobnav__link" href="#faq" id="mFaq">FAQ</a>
   </nav>
-  <button class="mobnav__cta" id="mCta" type="button">Entrar na lista <span class="arr" aria-hidden="true">&#8594;</span></button>
+  <a class="mobnav__cta" href="#waitlist" id="mCta">Participar <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
   <p class="mobnav__foot">XOK — dê o seu match de energIA.</p>
 </div>
 
-<main class="stage">
-  <div class="bigmark" id="bigmark">
-    <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="XOK">
-      <text x="500" y="240" text-anchor="middle" font-size="320" class="strokepart">XOK</text>
-      <clipPath id="fillClip"><rect id="fillRect" x="0" y="0" width="0" height="300"/></clipPath>
-      <text x="500" y="240" text-anchor="middle" font-size="320" class="fillpart" clip-path="url(#fillClip)">XOK</text>
-    </svg>
-    <div class="bigmark__tag" id="tagPaint">Dê o seu match de energIA<canvas class="tag-canvas" id="tagCanvas" aria-hidden="true"></canvas></div>
-  </div>
-</main>
-
-<section class="access" id="access" role="dialog" aria-modal="true" aria-label="Acesso a material confidencial" aria-hidden="true">
-  <div class="access__top" data-areveal>
-    <button class="access__back" id="accessBack" type="button" data-cursor><span class="arr">←</span> Voltar</button>
-    <span class="access__brand">XOK</span>
-  </div>
-
-  <div class="access__inner">
-    <h1 class="access__title" data-areveal>Material<br>confidencial.</h1>
-    <p class="access__intro" data-areveal>Apresentações reservadas da XOK. Aqui você conhece a solução que estamos desenvolvendo.</p>
-
-    <div class="access__cards">
-      <a class="acard" id="cardPitch" data-areveal data-cursor target="_blank" rel="noopener noreferrer">
-        <span class="acard__body">
-          <span class="acard__title">Pitch Deck</span>
-          <span class="acard__desc">Apresentação institucional da empresa, para investidores.</span>
-        </span>
-        <span class="acard__cta">
-          <span class="acard__status">Acessar</span>
-          <span class="acard__arrow" aria-hidden="true">↗</span>
-        </span>
-      </a>
-
-      <a class="acard" id="cardProto" data-areveal data-cursor target="_blank" rel="noopener noreferrer">
-        <span class="acard__body">
-          <span class="acard__title">Protótipo do app</span>
-          <span class="acard__desc">Demonstração do protótipo funcional do app da XOK.</span>
-        </span>
-        <span class="acard__cta">
-          <span class="acard__status">Acessar</span>
-          <span class="acard__arrow" aria-hidden="true">↗</span>
-        </span>
-      </a>
-    </div>
-
-    <p class="access__note" data-areveal>Conteúdo confidencial e de uso restrito. Ao prosseguir, você concorda em não compartilhar nem reproduzir o material.</p>
-  </div>
-</section>
-
-<section class="about" id="about" role="dialog" aria-modal="true" aria-label="Sobre a XOK" aria-hidden="true">
-  <div class="about__top">
-    <button class="about__back" id="aboutBack" type="button" data-cursor><span class="arr">←</span> Voltar</button>
-    <span class="about__brand">XOK</span>
-  </div>
-
-  <div class="about__inner">
-    <h1 class="about__h">
-      <span class="line"><span>A XOK é o jeito</span></span>
-      <span class="line"><span><em class="hl">inteligente</em> de ter</span></span>
-      <span class="line"><span>energia no mercado livre.</span></span>
-    </h1>
-
-    <p class="about__lead">Durante décadas, a conta de luz foi uma imposição — preço imprevisível, um único fornecedor, nenhuma escolha. Isso está mudando. O mercado livre de energia está se abrindo para as casas brasileiras, e a XOK existe para levar você até ele, sem a complexidade que sempre manteve esse mercado fora do alcance do consumidor.</p>
-
-    <div class="about__rule" aria-hidden="true"></div>
-
-    <div class="about__pillars">
-      <div class="pill" data-cursor>
-        <div class="pill__t">Energia sob medida</div>
-        <div class="pill__d">Tecnologia que entende o seu consumo e encontra a energia certa para o seu perfil.</div>
-      </div>
-      <div class="pill" data-cursor>
-        <div class="pill__t">Complexidade nos bastidores</div>
-        <div class="pill__d">Toda a burocracia do mercado livre resolvida por baixo. Para você, fica só o resultado.</div>
-      </div>
-      <div class="pill" data-cursor>
-        <div class="pill__t">Mais barata, sem surpresa</div>
-        <div class="pill__d">Energia com preço mais baixo e previsível, do jeito que uma conta de luz deveria ser.</div>
-      </div>
-    </div>
-
-    <div class="about__ctx">
-      <div class="about__num" aria-label="2028">2028</div>
-      <div class="about__cap">
-        O ano em que escolher de quem comprar energia deixa de ser privilégio de grandes empresas e passa a valer para todos os brasileiros.
-        <span class="about__src">Abertura do mercado livre ao Grupo B — Lei nº 15.269/2024.</span>
-      </div>
-    </div>
-
-    <p class="about__statement">A XOK não vende energia — ela <em class="hl">conecta</em> você à energia certa, do jeito mais simples, inteligente e econômico.</p>
-  </div>
-</section>
-
-<section class="join" id="join" role="dialog" aria-modal="true" aria-label="Entrar na lista de espera" aria-hidden="true">
-  <div class="join__top">
-    <button class="join__back" id="joinBack" type="button" data-cursor><span class="arr">←</span> Voltar</button>
-    <span class="join__brand">XOK</span>
-  </div>
-  <div class="join__inner">
-    <h2 class="join__h">
-      <span class="line"><span>Seja o primeiro a</span></span>
-      <span class="line"><span>dar o seu <em class="hl">match</em>.</span></span>
-    </h2>
-    <p class="join__sub">Deixe seu e-mail e avisamos no instante em que a XOK entrar no ar. Energia mais simples, previsível e econômica — e você na frente.</p>
-    <form class="join__form" id="joinForm" novalidate>
-      <div class="field">
-        <input class="field__input" id="joinEmail" type="email" inputmode="email" autocomplete="email" placeholder=" " />
-        <label class="field__label" for="joinEmail">Seu e-mail</label>
-        <span class="field__line" aria-hidden="true"></span>
-      </div>
-      <button class="join__submit" id="joinSubmit" type="submit" data-cursor>Quero entrar <span class="arr">&#8594;</span></button>
-      <p class="join__err" id="joinErr" role="alert" aria-live="polite"></p>
-    </form>
-    <div class="join__done" id="joinDone" aria-hidden="true">
-      <svg class="check" viewBox="0 0 52 52" aria-hidden="true">
-        <circle class="check__circle" cx="26" cy="26" r="23"/>
-        <path class="check__mark" d="M16 27 l7 7 l14 -16"/>
+<section class="reveal-wrap" id="revealWrap">
+  <main class="reveal" id="reveal">
+    <div class="bigmark" id="bigmark">
+      <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="XOK">
+        <text x="500" y="240" text-anchor="middle" font-size="320" class="strokepart">XOK</text>
+        <clipPath id="fillClip"><rect id="fillRect" x="0" y="0" width="0" height="300"/></clipPath>
+        <text x="500" y="240" text-anchor="middle" font-size="320" class="fillpart" clip-path="url(#fillClip)">XOK</text>
       </svg>
-      <p class="join__done-t">Pronto. Você está na lista.</p>
-      <p class="join__done-d">Avisaremos você por e-mail assim que a XOK entrar no ar.</p>
+      <div class="bigmark__tag" id="tagPaint">DÊ O SEU MATCH DE ENERG<span class="tag-ia">IA</span><canvas class="tag-canvas" id="tagCanvas" aria-hidden="true"></canvas></div>
     </div>
-    <p class="join__note">Sem spam. Apenas o aviso de lançamento.</p>
+    <div class="reveal__inner">
+      <div class="reveal__stack" id="revealStack">
+        <p class="reveal__text" id="revealText1">A XOK é uma plataforma que conecta você a geradores e comercializadoras de energia no mercado livre.</p>
+        <p class="reveal__text" id="revealText2">Quem gera a energia é o fornecedor. Quem entrega pela rede continua sendo a sua distribuidora. Nós encontramos, entre as ofertas disponíveis, a que mais combina com o seu padrão de consumo.</p>
+      </div>
+    </div>
+    <div class="scrolldown" id="scrollDown" aria-hidden="true">
+      <span class="scrolldown__mouse"><span class="scrolldown__dot"></span></span>
+    </div>
+  </main>
+</section>
+
+<section class="steps-wrap" id="stepsWrap">
+  <div class="steps" id="steps">
+    <h2 class="steps__title">São quatro passos para acessar uma nova forma de comprar energia</h2>
+    <div class="steps__stack" id="stepsStack">
+      <article class="scard">
+        <span class="scard__num">01</span>
+        <h3 class="scard__title">Você fotografa a fatura</h3>
+        <p class="scard__desc">Uma foto ou o PDF da sua conta de luz. Ela contém todas as informações que precisamos.</p>
+      </article>
+      <article class="scard">
+        <span class="scard__num">02</span>
+        <h3 class="scard__title">A XOK lê o seu consumo</h3>
+        <p class="scard__desc">Distribuidora, histórico dos últimos meses, classe tarifária e padrão de uso. É o que define para qual oferta você se encaixa.</p>
+      </article>
+      <article class="scard">
+        <span class="scard__num">03</span>
+        <h3 class="scard__title">Você recebe uma oferta</h3>
+        <p class="scard__desc">Uma, clara, com o preço fixo e a validade. Sem tabela comparativa, sem letra miúda, sem escolher entre dez fornecedores que você não conhece.</p>
+      </article>
+      <article class="scard">
+        <span class="scard__num">04</span>
+        <h3 class="scard__title">Aceita e pronto</h3>
+        <p class="scard__desc">Contrato de 24 meses com preço travado. A migração é feita nos bastidores. Sua rotina não muda.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="waitlist" id="waitlist">
+  <div class="waitlist__inner">
+    <div class="waitlist__intro">
+      <h2 class="waitlist__title">Entre agora e acompanhe a construção</h2>
+      <p class="waitlist__desc">A lista define a ordem de convite para os primeiros testes e para o lançamento. Quanto mais completo o seu cadastro, mais cedo conseguimos saber se existe oferta disponível para o seu perfil na sua região.</p>
+      <div class="waitlist__cards">
+        <article class="wcard">
+          <h3 class="wcard__title">O que você recebe</h3>
+          <p class="wcard__desc">Um resumo mensal por e-mail com o andamento da abertura do mercado, o que mudou na regulação e onde a XOK chegou. Sem venda, sem promoção. Você pode sair a qualquer momento com um clique.</p>
+        </article>
+        <article class="wcard">
+          <h3 class="wcard__title">O que você não recebe</h3>
+          <p class="wcard__desc">Proposta comercial, contrato ou cobrança. A XOK está em fase pré-operacional e não comercializa energia. Nada será cobrado de você em nenhuma etapa da lista.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="waitlist__panel" id="waitlistPanel">
+      <div class="wform__head">
+        <span class="wform__eyebrow">Cadastro na lista</span>
+      </div>
+
+      <form class="wform" id="wform" novalidate>
+        <div class="wf">
+          <label class="wf__label" for="wfNome">Nome</label>
+          <input class="wf__input" id="wfNome" name="nome" type="text" autocomplete="name" placeholder="Seu nome completo" />
+        </div>
+
+        <div class="wf">
+          <label class="wf__label" for="wfEmail">E-mail</label>
+          <input class="wf__input" id="wfEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" />
+        </div>
+
+        <div class="wform__row wform__row--2">
+          <div class="wf">
+            <label class="wf__label" for="wfCep">CEP (onde fica o imóvel)</label>
+            <input class="wf__input" id="wfCep" name="cep" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" />
+          </div>
+          <div class="wf">
+            <label class="wf__label" for="wfWhats">WhatsApp (opcional)</label>
+            <input class="wf__input" id="wfWhats" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
+          </div>
+        </div>
+
+        <div class="wf">
+          <label class="wf__label" for="wfDist">Sua distribuidora</label>
+          <select class="wf__select" id="wfDist" name="distribuidora">
+            <option selected>Não sei / não lembro</option>
+            <option>CPFL Energia</option>
+            <option>Enel</option>
+            <option>Light</option>
+            <option>CEMIG</option>
+            <option>COPEL</option>
+            <option>Neoenergia</option>
+            <option>EDP</option>
+            <option>Equatorial Energia</option>
+            <option>CELESC</option>
+            <option>CEEE</option>
+            <option>Amazonas Energia</option>
+            <option>Outra</option>
+          </select>
+        </div>
+
+        <div class="wf">
+          <span class="wf__label">Valor médio da sua conta</span>
+          <div class="wf__opts" id="wfValor" data-select="single" data-name="valor">
+            <button class="wf__opt" type="button" data-value="ate-150">Até R$ 150</button>
+            <button class="wf__opt" type="button" data-value="150-300">R$ 150–300</button>
+            <button class="wf__opt" type="button" data-value="300-600">R$ 300–600</button>
+            <button class="wf__opt" type="button" data-value="600-1200">R$ 600–1.200</button>
+            <button class="wf__opt" type="button" data-value="acima-1200">Acima de R$ 1.200</button>
+          </div>
+        </div>
+
+        <div class="wf">
+          <span class="wf__label">Tipo de imóvel</span>
+          <div class="wf__opts" id="wfImovel" data-select="single" data-name="imovel">
+            <button class="wf__opt" type="button" data-value="residencia">Residência</button>
+            <button class="wf__opt" type="button" data-value="comercio">Comércio ou escritório</button>
+            <button class="wf__opt" type="button" data-value="rural">Rural</button>
+            <button class="wf__opt" type="button" data-value="condominio">Condomínio</button>
+          </div>
+        </div>
+
+        <div class="wf">
+          <span class="wf__label">Você tem algum destes vínculos? (marque se aplicável)</span>
+          <div class="wf__opts" id="wfVinculos" data-select="multi" data-name="vinculos">
+            <button class="wf__opt" type="button" data-value="servidor">Servidor público</button>
+            <button class="wf__opt" type="button" data-value="empresa500">Empresa com +500 funcionários</button>
+            <button class="wf__opt" type="button" data-value="sindicato">Sindicato ou associação</button>
+            <button class="wf__opt" type="button" data-value="rh">Trabalho com RH ou benefícios</button>
+          </div>
+        </div>
+
+        <div class="wf">
+          <span class="wf__label">Envie sua última fatura (opcional, acelera sua posição)</span>
+          <div class="wf__drop" id="wfDrop" tabindex="0" role="button" aria-label="Enviar arquivo da fatura">
+            <p class="wf__drop-t">Arraste a foto ou o PDF aqui</p>
+            <p class="wf__drop-d">ou <span class="wf__drop-link" id="wfDropLink">escolha um arquivo</span> · JPG, PNG ou PDF até 10MB</p>
+            <p class="wf__filename" id="wfFilename"></p>
+            <input class="wf__file" id="wfFile" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+          </div>
+          <p class="wf__hint">Usamos a fatura para entender seu padrão de consumo e testar a leitura automática da plataforma. Não compartilhamos com terceiros. Você pode pedir a exclusão quando quiser.</p>
+        </div>
+
+        <label class="wf__check">
+          <input type="checkbox" id="wfInteresse" name="interesse" />
+          <span>Tenho interesse em participar dos primeiros testes da plataforma, sem custo e sem compromisso.</span>
+        </label>
+
+        <label class="wf__check">
+          <input type="checkbox" id="wfConsent" name="consentimento" />
+          <span>Autorizo a XOK a tratar meus dados para me manter informado sobre a abertura do mercado e o lançamento da plataforma, conforme a <a href="#" id="wfPolicyLink">Política de Privacidade</a>. Posso revogar a qualquer momento.</span>
+        </label>
+
+        <button class="wform__submit" id="wformSubmit" type="submit" data-cursor>Entrar na lista</button>
+        <p class="wform__err" id="wformErr" role="alert" aria-live="polite"></p>
+      </form>
+
+      <div class="wform__done" id="wformDone" aria-hidden="true">
+        <svg class="check" viewBox="0 0 54 54" fill="none" aria-hidden="true">
+          <circle class="check__circle" cx="27" cy="27" r="24"/>
+          <path class="check__mark" d="M16 28l8 8 15-17"/>
+        </svg>
+        <p class="join__done-t">Pronto. Você está na lista.</p>
+        <p class="join__done-d">Avisaremos você por e-mail assim que houver novidade para o seu perfil e sua região.</p>
+      </div>
+
+      <p class="wform__foot">Gratuito · Sem compromisso · Sem cobrança em nenhuma etapa</p>
+    </div>
+  </div>
+</section>
+
+<section class="corp" id="corp">
+  <div class="corp__inner">
+    <h2 class="corp__title">Tem energia para vender ou uma base de pessoas para atender?</h2>
+    <div class="corp__cards">
+      <article class="ccard">
+        <h3 class="ccard__title">Geradores e comercializadoras</h3>
+        <p class="ccard__desc">Acesso a um canal de varejo residencial e de pequeno comércio, com consumidores agrupados por perfil de carga em blocos previsíveis.</p>
+        <a class="ccard__btn" id="corpSupplierBtn" href="#" data-cursor>ver a proposta para fornecedores <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+      </article>
+      <article class="ccard">
+        <h3 class="ccard__title">Empresas, órgãos públicos e sindicatos</h3>
+        <p class="ccard__desc">Benefício de energia para a sua base de funcionários ou associados, sem custo para a instituição e sem processo licitatório de compra.</p>
+        <a class="ccard__btn" id="corpInstitutionalBtn" href="#" data-cursor>ver a proposta institucional <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="social" id="social">
+  <div class="social__inner">
+    <h2 class="social__title">Acompanhe nossas redes sociais em <em class="hl">@xokenergia</em></h2>
+    <div class="social__cards">
+      <a class="scard" href="https://www.instagram.com/p/DbUTSXikbzI/?img_index=1" target="_blank" rel="noopener noreferrer" data-cursor aria-label="Ver post no Instagram">
+        <img class="scard__img" src="assets/post1.png" alt="Post da XOK no Instagram" loading="lazy" />
+      </a>
+      <a class="scard" href="https://www.instagram.com/p/DcELmOpER0K/?img_index=1" target="_blank" rel="noopener noreferrer" data-cursor aria-label="Ver post no Instagram">
+        <img class="scard__img" src="assets/post2.png" alt="Post da XOK no Instagram" loading="lazy" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="faq__inner">
+    <h2 class="faq__title">O que costumam perguntar</h2>
+    <div class="faq__list">
+      <details class="faq-item">
+        <summary class="faq-item__q">A XOK já está funcionando?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Não. A XOK está em fase pré-operacional. A plataforma está em desenvolvimento e o lançamento comercial está planejado para acompanhar a abertura do mercado livre para o Grupo B. Hoje só existe a lista de espera.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Vocês vendem energia?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Não. A XOK é uma plataforma de intermediação: conecta consumidores a geradores e comercializadoras autorizados. O contrato de fornecimento é entre você e o fornecedor. A entrega física da energia continua sendo feita pela rede da sua distribuidora.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Quando eu vou poder migrar de verdade?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Depende do seu perfil. A Lei nº 15.269/2025 prevê abertura progressiva do mercado livre para o Grupo B, com ampliação completa até novembro de 2028. Pequenos comércios têm previsão de entrar antes das residências. O cronograma é definido pelo poder concedente e pode ser alterado.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Quanto eu vou economizar?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Não temos como afirmar um número para o seu caso, e desconfie de quem afirmar. As estimativas de mercado para consumidores do Grupo B no ambiente livre ficam na faixa de 12% a 20% (Fonte: ABRACEEL, 2024). O valor real vai depender do seu consumo, da oferta disponível na sua região e das condições vigentes quando o mercado abrir.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Vou precisar trocar de distribuidora? Vai faltar luz?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Não e não. A distribuidora continua responsável pelos fios, pelos postes, pela manutenção e pelo atendimento de emergência. O que muda é de quem você compra a energia, não por onde ela chega.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Por que vocês pedem minha fatura antes de existir plataforma?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Por dois motivos, e vale ser direto sobre os dois. Primeiro: a fatura contém o histórico de consumo, que é o que permite dizer se existe oferta compatível com o seu perfil. Segundo: estamos usando faturas reais para desenvolver e testar a leitura automática da plataforma. Os dados são tratados conforme a LGPD, não são vendidos nem compartilhados com terceiros para fins de marketing, e você pode solicitar a exclusão a qualquer momento.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Entrar na lista me compromete a alguma coisa?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">Não. Não há contrato, não há reserva, não há cobrança. Você recebe atualizações por e-mail e pode sair quando quiser. Quando a plataforma estiver disponível, você decide se quer ou não seguir.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-item__q">Quem está por trás da XOK?<span class="faq-item__icon" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">A XOK é desenvolvida pela Hub22. O modelo de negócio, a estrutura operacional e a análise regulatória foram construídos com apoio da consultoria Finscale.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="footer">
+  <div class="footer__inner">
+    <div class="footer__top">
+      <a href="#" class="footer__logo" data-cursor>XOK</a>
+      <nav class="footer__links" aria-label="Navegação do rodapé">
+        <a href="#stepsWrap">Solução</a>
+        <a href="#waitlist">Participar</a>
+        <a href="#corp">Empresas</a>
+        <a href="#social">Redes</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://www.instagram.com/xokenergia" target="_blank" rel="noopener noreferrer" data-cursor>Instagram</a>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <p class="footer__copy">&copy; <span id="footerYear"></span> XOK. Desenvolvida pela Hub22.</p>
+      <a href="#" id="footerPolicy" class="footer__policy">Política de Privacidade</a>
+    </div>
+  </div>
+</footer>
+
+<section class="lead" id="leadSupplier" role="dialog" aria-modal="true" aria-label="Proposta para fornecedores" aria-hidden="true">
+  <div class="lead__top" data-lreveal>
+    <button class="lead__back" id="leadSupplierBack" type="button" data-cursor><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
+    <span class="lead__brand">XOK</span>
+  </div>
+  <div class="lead__inner">
+    <h2 class="lead__title" data-lreveal>Vamos conversar</h2>
+    <p class="lead__sub" data-lreveal>Conte um pouco sobre sua empresa e nossa equipe apresentará as possibilidades de parceria.</p>
+
+    <form class="lead__form" id="leadSupplierForm" data-lreveal novalidate>
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierNome">Seu nome</label>
+          <input class="wf__input" id="leadSupplierNome" name="nome" type="text" autocomplete="name" placeholder="Seu nome completo" />
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierEmpresa">Empresa</label>
+          <input class="wf__input" id="leadSupplierEmpresa" name="empresa" type="text" autocomplete="organization" placeholder="Nome da empresa" />
+        </div>
+      </div>
+
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierEmail">E-mail corporativo</label>
+          <input class="wf__input" id="leadSupplierEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@empresa.com" />
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierWhats">WhatsApp</label>
+          <input class="wf__input" id="leadSupplierWhats" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
+        </div>
+      </div>
+
+      <div class="wf">
+        <label class="wf__label" for="leadSupplierCargo">Seu cargo</label>
+        <input class="wf__input" id="leadSupplierCargo" name="cargo" type="text" autocomplete="organization-title" placeholder="Seu cargo na empresa" />
+      </div>
+
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierTipo">Tipo de empresa</label>
+          <select class="wf__select" id="leadSupplierTipo" name="tipo">
+            <option value="" selected disabled>Selecione</option>
+            <option value="geradora">Geradora</option>
+            <option value="comercializadora">Comercializadora</option>
+            <option value="outra">Outra</option>
+          </select>
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadSupplierVolume">Volume/capacidade de energia</label>
+          <select class="wf__select" id="leadSupplierVolume" name="volume">
+            <option value="" selected disabled>Selecione</option>
+            <option value="ate-10mw">Até 10 MW</option>
+            <option value="10-50mw">10–50 MW</option>
+            <option value="50-100mw">50–100 MW</option>
+            <option value="acima-100mw">Acima de 100 MW</option>
+            <option value="conversar">Prefiro conversar sobre isso</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wf" id="leadSupplierTipoOutroWrap" style="display:none">
+        <label class="wf__label" for="leadSupplierTipoOutro">Qual o tipo da sua empresa?</label>
+        <input class="wf__input" id="leadSupplierTipoOutro" name="tipoOutro" type="text" placeholder="Descreva o tipo de empresa" />
+      </div>
+
+      <div class="wf">
+        <label class="wf__label" for="leadSupplierMsg">Mensagem <span class="wf__optional">(opcional)</span></label>
+        <textarea class="wf__input" id="leadSupplierMsg" name="mensagem" rows="4" placeholder="Conte mais sobre a sua proposta"></textarea>
+      </div>
+
+      <button class="wform__submit" id="leadSupplierSubmit" type="submit" data-cursor>Enviar mensagem</button>
+      <p class="wform__err" id="leadSupplierErr" role="alert" aria-live="polite"></p>
+    </form>
+
+    <div class="wform__done" id="leadSupplierDone" aria-hidden="true">
+      <svg class="check" viewBox="0 0 54 54" fill="none" aria-hidden="true">
+        <circle class="check__circle" cx="27" cy="27" r="24"/>
+        <path class="check__mark" d="M16 28l8 8 15-17"/>
+      </svg>
+      <p class="join__done-t">Mensagem enviada.</p>
+      <p class="join__done-d">Nossa equipe vai entrar em contato para apresentar as possibilidades de parceria.</p>
+    </div>
+  </div>
+</section>
+
+<section class="lead" id="leadInstitutional" role="dialog" aria-modal="true" aria-label="Proposta institucional" aria-hidden="true">
+  <div class="lead__top" data-lreveal>
+    <button class="lead__back" id="leadInstitutionalBack" type="button" data-cursor><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
+    <span class="lead__brand">XOK</span>
+  </div>
+  <div class="lead__inner">
+    <h2 class="lead__title" data-lreveal>Vamos conversar</h2>
+    <p class="lead__sub" data-lreveal>Conte um pouco sobre sua organização e sua base. Nossa equipe apresentará como levar o benefício de energia aos seus funcionários ou associados.</p>
+
+    <form class="lead__form" id="leadInstitutionalForm" data-lreveal novalidate>
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalNome">Seu nome</label>
+          <input class="wf__input" id="leadInstitutionalNome" name="nome" type="text" autocomplete="name" placeholder="Seu nome completo" />
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalEmpresa">Empresa</label>
+          <input class="wf__input" id="leadInstitutionalEmpresa" name="empresa" type="text" autocomplete="organization" placeholder="Nome da organização" />
+        </div>
+      </div>
+
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalEmail">E-mail corporativo</label>
+          <input class="wf__input" id="leadInstitutionalEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@empresa.com" />
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalWhats">WhatsApp</label>
+          <input class="wf__input" id="leadInstitutionalWhats" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
+        </div>
+      </div>
+
+      <div class="wf">
+        <label class="wf__label" for="leadInstitutionalCargo">Seu cargo</label>
+        <input class="wf__input" id="leadInstitutionalCargo" name="cargo" type="text" autocomplete="organization-title" placeholder="Seu cargo na organização" />
+      </div>
+
+      <div class="wform__row wform__row--2">
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalTipo">Tipo de empresa</label>
+          <select class="wf__select" id="leadInstitutionalTipo" name="tipo">
+            <option value="" selected disabled>Selecione</option>
+            <option value="privada">Empresa privada</option>
+            <option value="publico">Órgão público</option>
+            <option value="sindicato">Sindicato</option>
+            <option value="associacao">Associação</option>
+            <option value="outra">Outra</option>
+          </select>
+        </div>
+        <div class="wf">
+          <label class="wf__label" for="leadInstitutionalBase">Número aproximado de pessoas na base</label>
+          <select class="wf__select" id="leadInstitutionalBase" name="base">
+            <option value="" selected disabled>Selecione</option>
+            <option value="ate-100">Até 100</option>
+            <option value="100-500">100–500</option>
+            <option value="500-1000">500–1.000</option>
+            <option value="1000-5000">1.000–5.000</option>
+            <option value="acima-5000">Mais de 5.000</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wf" id="leadInstitutionalTipoOutroWrap" style="display:none">
+        <label class="wf__label" for="leadInstitutionalTipoOutro">Qual o tipo da sua organização?</label>
+        <input class="wf__input" id="leadInstitutionalTipoOutro" name="tipoOutro" type="text" placeholder="Descreva o tipo de organização" />
+      </div>
+
+      <div class="wf">
+        <label class="wf__label" for="leadInstitutionalMsg">Mensagem <span class="wf__optional">(opcional)</span></label>
+        <textarea class="wf__input" id="leadInstitutionalMsg" name="mensagem" rows="4" placeholder="Conte mais sobre a sua base"></textarea>
+      </div>
+
+      <button class="wform__submit" id="leadInstitutionalSubmit" type="submit" data-cursor>Enviar mensagem</button>
+      <p class="wform__err" id="leadInstitutionalErr" role="alert" aria-live="polite"></p>
+    </form>
+
+    <div class="wform__done" id="leadInstitutionalDone" aria-hidden="true">
+      <svg class="check" viewBox="0 0 54 54" fill="none" aria-hidden="true">
+        <circle class="check__circle" cx="27" cy="27" r="24"/>
+        <path class="check__mark" d="M16 28l8 8 15-17"/>
+      </svg>
+      <p class="join__done-t">Mensagem enviada.</p>
+      <p class="join__done-d">Nossa equipe vai entrar em contato para apresentar o benefício para a sua base.</p>
+    </div>
   </div>
 </section>
 
 <div class="cursor__dot" id="cursorDot" aria-hidden="true"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script>
 (function(){
   "use strict";
   var REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var CAN_HOVER = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+  var IS_MOBILE = window.matchMedia("(max-width:860px)").matches; /* mesmo breakpoint do menu móvel (≤860px) */
   var hasGSAP = !!window.gsap;
+  var hasScrollTrigger = hasGSAP && !!window.ScrollTrigger;
+
+  /* trava/libera a rolagem da página -- usada em setupReveal para bloquear o scroll
+     enquanto a animação automática do texto1 (neon) está em andamento */
+  function lockScroll(){ document.documentElement.classList.add("is-scroll-locked"); document.body.classList.add("is-scroll-locked"); }
+  function unlockScroll(){ document.documentElement.classList.remove("is-scroll-locked"); document.body.classList.remove("is-scroll-locked"); }
+
+  /* a intro deve tocar do início a cada carregamento (scrollRestoration já foi setado
+     no <head>, antes de tudo); aqui só garante a posição inicial */
+  window.scrollTo(0,0);
 
   /* custom cursor: filled dot follows pointer */
   if(CAN_HOVER && hasGSAP){
@@ -492,234 +939,380 @@ body.has-cursor,body.has-cursor *{cursor:none}
     window.addEventListener("mousemove",function(e){ dx(e.clientX); dy(e.clientY); },{passive:true});
   }
 
-  /* nav links go nowhere — pages/sections no longer exist */
-  document.querySelectorAll(".nav a").forEach(function(a){
-    a.addEventListener("click",function(e){ e.preventDefault(); });
-  });
+  /* header ganha o vidro fosco escuro (.scrolled) só quando a página começa a rolar de
+     verdade por baixo dele — ou seja, depois que ".reveal" descola do topo (fim do pin),
+     o que só acontece quando a revelação do texto 2 já terminou por completo. Antes disso
+     (XOK, texto 1 automático, texto 2 por scroll) o header permanece transparente, mesmo
+     a página já tendo scrollY>0 durante a rolagem do texto 2. Limiar calculado pela mesma
+     geometria do "end:bottom bottom" usado no ScrollTrigger do texto 2 (ver setupReveal).
+     Chamada só dentro de go(), depois de setupReveal() -- antes disso #revealWrap ainda
+     não tem a altura estendida (calc(100svh + stuckDistance)) e a medição sairia errada. */
+  function setupNavGlass(){
+    var navEl = document.querySelector(".nav");
+    if(!navEl) return;
 
-  /* =======================================================
-     LINKS DO DOCSEND — cole as URLs aqui quando tiver.
-     Enquanto vazias, a card "Acessar" fica esmaecida e inativa.
-     ======================================================= */
-  var DOCSEND_PITCH     = "https://docsend.com/v/phty2/xok-pitch-deck";            /* pitch deck institucional (investidores) */
-  var DOCSEND_PROTOTYPE = "https://docsend.com/v/phty2/demonstracao-prototipo-xok"; /* protótipo funcional do app XOK */
+    /* sem pin dirigido por scroll (sem ScrollTrigger ou motion reduzido): mantém o
+       comportamento simples de sempre (vidro assim que sair do topo) */
+    if(!hasScrollTrigger || REDUCE){
+      var simple = function(){ navEl.classList.toggle("scrolled", window.scrollY > 4); };
+      simple();
+      window.addEventListener("scroll", simple, {passive:true});
+      return;
+    }
 
-  var access     = document.getElementById("access");
-  var navAcesso  = document.getElementById("navAcesso");
-  var accessBack = document.getElementById("accessBack");
-
-  function wireCard(id, url){
-    var el = document.getElementById(id); if(!el) return;
-    if(url){ el.setAttribute("href", url); el.classList.remove("acard--pending"); }
-    else { el.removeAttribute("href"); el.classList.add("acard--pending"); }
+    var pinEndY = 0;
+    function measure(){
+      var wrap = document.getElementById("revealWrap");
+      if(!wrap) return;
+      var r = wrap.getBoundingClientRect();
+      pinEndY = r.bottom + window.scrollY - window.innerHeight; /* mesmo ponto do "end:bottom bottom" */
+    }
+    var ticking = false;
+    var update = function(){
+      navEl.classList.toggle("scrolled", window.scrollY >= pinEndY);
+      ticking = false;
+    };
+    measure();
+    update();
+    window.addEventListener("scroll",function(){
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    },{passive:true});
+    window.addEventListener("resize",function(){ measure(); update(); },{passive:true});
   }
-  wireCard("cardPitch", DOCSEND_PITCH);
-  wireCard("cardProto", DOCSEND_PROTOTYPE);
 
-  function openAccess(){
-    if(!access) return;
-    access.classList.add("is-open");
-    access.setAttribute("aria-hidden","false");
-    var items = access.querySelectorAll("[data-areveal]");
-    if(!hasGSAP || REDUCE){
-      access.style.opacity = "1";
-      items.forEach(function(el){ el.style.opacity = "1"; el.style.transform = "none"; });
-    } else {
-      gsap.set(access,{opacity:0});
-      gsap.set(items,{opacity:0,y:24});
+  /* ---- WAITLIST (seção embutida na página, não é overlay) — máscaras, grupos de botão,
+     upload de fatura e envio. Front-end apenas: não há backend conectado ainda, então o "envio"
+     apenas valida os campos e mostra o estado de sucesso. ---- */
+  (function setupWaitlistForm(){
+    var wform     = document.getElementById("wform");
+    if(!wform) return;
+    var wfCep     = document.getElementById("wfCep");
+    var wfWhats   = document.getElementById("wfWhats");
+    var wfNome    = document.getElementById("wfNome");
+    var wfEmail   = document.getElementById("wfEmail");
+    var wfConsent = document.getElementById("wfConsent");
+    var wformErr  = document.getElementById("wformErr");
+    var wformDone = document.getElementById("wformDone");
+    var wfDrop    = document.getElementById("wfDrop");
+    var wfFile    = document.getElementById("wfFile");
+    var wfDropLink   = document.getElementById("wfDropLink");
+    var wfFilename   = document.getElementById("wfFilename");
+    var wfPolicyLink = document.getElementById("wfPolicyLink");
+
+    /* máscara de CEP: 00000-000 */
+    if(wfCep) wfCep.addEventListener("input", function(){
+      var v = wfCep.value.replace(/\D/g,"").slice(0,8);
+      wfCep.value = v.length > 5 ? v.slice(0,5)+"-"+v.slice(5) : v;
+    });
+
+    /* máscara de WhatsApp: (00) 00000-0000 */
+    if(wfWhats) wfWhats.addEventListener("input", function(){
+      var v = wfWhats.value.replace(/\D/g,"").slice(0,11);
+      var out = v;
+      if(v.length > 0) out = "("+v.slice(0,2);
+      if(v.length >= 3) out += ") "+v.slice(2, v.length>=7?7:v.length);
+      if(v.length >= 8) out += "-"+v.slice(7);
+      wfWhats.value = out;
+    });
+
+    /* política de privacidade: ainda não existe uma página dedicada no site */
+    if(wfPolicyLink) wfPolicyLink.addEventListener("click", function(e){ e.preventDefault(); });
+
+    /* grupos de opção em botão (seleção única ou múltipla, sem inputs nativos) */
+    wform.querySelectorAll(".wf__opts").forEach(function(group){
+      var multi = group.getAttribute("data-select") === "multi";
+      group.querySelectorAll(".wf__opt").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          if(multi){
+            btn.classList.toggle("is-active");
+          } else {
+            group.querySelectorAll(".wf__opt").forEach(function(b){ b.classList.remove("is-active"); });
+            btn.classList.add("is-active");
+          }
+        });
+      });
+    });
+
+    /* upload da fatura (drag & drop + seleção manual) — arquivo fica só em memória, nada é enviado */
+    var chosenFile = null;
+    function showFile(file){
+      chosenFile = file || null;
+      if(!wfFilename) return;
+      if(chosenFile){
+        wfFilename.textContent = chosenFile.name + " · remover";
+        wfFilename.classList.add("is-visible");
+      } else {
+        wfFilename.textContent = "";
+        wfFilename.classList.remove("is-visible");
+      }
+    }
+    function acceptFile(file){
+      if(!file) return;
+      var okType = /\.(jpe?g|png|pdf)$/i.test(file.name);
+      var okSize = file.size <= 10*1024*1024;
+      if(!okType || !okSize) return;
+      showFile(file);
+    }
+    if(wfDropLink) wfDropLink.addEventListener("click", function(e){ e.stopPropagation(); if(wfFile) wfFile.click(); });
+    if(wfDrop){
+      wfDrop.addEventListener("click", function(e){ if(e.target===wfFilename) return; if(wfFile) wfFile.click(); });
+      wfDrop.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); if(wfFile) wfFile.click(); } });
+      ["dragover","dragenter"].forEach(function(ev){ wfDrop.addEventListener(ev, function(e){ e.preventDefault(); wfDrop.classList.add("is-dragover"); }); });
+      ["dragleave","drop"].forEach(function(ev){ wfDrop.addEventListener(ev, function(e){ e.preventDefault(); wfDrop.classList.remove("is-dragover"); }); });
+      wfDrop.addEventListener("drop", function(e){ var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; acceptFile(f); });
+    }
+    if(wfFile) wfFile.addEventListener("change", function(){ acceptFile(wfFile.files[0]); });
+    if(wfFilename) wfFilename.addEventListener("click", function(e){ e.stopPropagation(); showFile(null); if(wfFile) wfFile.value=""; });
+
+    function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+    function shake(el){ if(el && window.gsap && !REDUCE) gsap.fromTo(el,{x:-7},{x:0,duration:0.5,ease:"elastic.out(1,0.35)"}); }
+
+    function submitWaitlist(){
+      var nome  = ((wfNome  && wfNome.value)  || "").trim();
+      var email = ((wfEmail && wfEmail.value) || "").trim();
+      if(!nome){
+        if(wformErr) wformErr.textContent = "Digite seu nome.";
+        shake(wfNome && wfNome.parentElement);
+        if(wfNome){ try{ wfNome.focus({preventScroll:true}); }catch(e){} }
+        return;
+      }
+      if(!isEmail(email)){
+        if(wformErr) wformErr.textContent = "Digite um e-mail válido.";
+        shake(wfEmail && wfEmail.parentElement);
+        if(wfEmail){ try{ wfEmail.focus({preventScroll:true}); }catch(e){} }
+        return;
+      }
+      if(wfConsent && !wfConsent.checked){
+        if(wformErr) wformErr.textContent = "É preciso autorizar o tratamento dos seus dados para continuar.";
+        shake(wfConsent.closest(".wf__check"));
+        return;
+      }
+      if(wformErr) wformErr.textContent = "";
+
+      /* front-end apenas: nenhum backend conectado — só simula o envio e mostra o estado de sucesso */
+      if(!hasGSAP || REDUCE){
+        wform.style.display = "none";
+        if(wformDone) wformDone.style.display = "block";
+        return;
+      }
+      var circ = wformDone ? wformDone.querySelector(".check__circle") : null;
+      var mark = wformDone ? wformDone.querySelector(".check__mark") : null;
       var tl = gsap.timeline();
-      tl.to(access,{opacity:1,duration:0.5,ease:"power2.out"})
-        .to(items,{opacity:1,y:0,duration:0.8,stagger:0.08,ease:"power3.out"},"-=0.2");
-    }
-    if(accessBack){ try{ accessBack.focus({preventScroll:true}); }catch(e){} }
-  }
-
-  function closeAccess(){
-    if(!access) return;
-    function done(){
-      access.classList.remove("is-open");
-      access.setAttribute("aria-hidden","true");
-      if(navAcesso){ try{ navAcesso.focus({preventScroll:true}); }catch(e){} }
-    }
-    if(!hasGSAP || REDUCE){ access.style.opacity = "0"; done(); }
-    else { gsap.to(access,{opacity:0,duration:0.4,ease:"power2.in",onComplete:done}); }
-  }
-
-  if(navAcesso)  navAcesso.addEventListener("click", function(e){ e.preventDefault(); openAccess(); });
-  if(accessBack) accessBack.addEventListener("click", closeAccess);
-
-  /* ---- SOBRE (about) overlay ---- */
-  var about     = document.getElementById("about");
-  var navSobre  = document.getElementById("navSobre");
-  var aboutBack = document.getElementById("aboutBack");
-
-  function openAbout(){
-    if(!about) return;
-    about.classList.add("is-open");
-    about.setAttribute("aria-hidden","false");
-
-    var lines   = about.querySelectorAll(".about__h .line > span");
-    var lead    = about.querySelector(".about__lead");
-    var rule    = about.querySelector(".about__rule");
-    var pills   = about.querySelectorAll(".pill");
-    var ctx     = about.querySelectorAll(".about__num, .about__cap");
-    var stmt    = about.querySelector(".about__statement");
-    var numEl   = about.querySelector(".about__num");
-
-    if(!hasGSAP || REDUCE){
-      about.style.opacity = "1";
-      [lead,stmt].forEach(function(el){ if(el){ el.style.opacity="1"; el.style.transform="none"; } });
-      lines.forEach(function(el){ el.style.transform="none"; });
-      pills.forEach(function(el){ el.style.opacity="1"; el.style.transform="none"; });
-      ctx.forEach(function(el){ el.style.opacity="1"; el.style.transform="none"; });
-      if(rule) rule.style.transform = "scaleX(1)";
-      if(numEl) numEl.textContent = "2028";
-      if(aboutBack){ try{ aboutBack.focus({preventScroll:true}); }catch(e){} }
-      return;
+      tl.to(wform,{opacity:0,y:-12,duration:0.35,ease:"power2.in",onComplete:function(){ wform.style.display="none"; }})
+        .set(wformDone,{display:"block",opacity:0,y:16});
+      if(circ && mark){
+        var Lc = circ.getTotalLength(), Lm = mark.getTotalLength();
+        gsap.set(circ,{strokeDasharray:Lc,strokeDashoffset:Lc});
+        gsap.set(mark,{strokeDasharray:Lm,strokeDashoffset:Lm});
+        tl.to(wformDone,{opacity:1,y:0,duration:0.5,ease:"power3.out"})
+          .to(circ,{strokeDashoffset:0,duration:0.55,ease:"power2.out"},"-=0.25")
+          .to(mark,{strokeDashoffset:0,duration:0.4,ease:"power2.out"},"-=0.1");
+      } else {
+        tl.to(wformDone,{opacity:1,y:0,duration:0.5,ease:"power3.out"});
+      }
     }
 
-    gsap.set(about,{opacity:0});
-    gsap.set(lines,{yPercent:110});
-    gsap.set(lead,{opacity:0,y:24});
-    gsap.set(rule,{scaleX:0});
-    gsap.set(pills,{opacity:0,y:28});
-    gsap.set(ctx,{opacity:0,y:24});
-    gsap.set(stmt,{opacity:0,y:24});
-    var counter = {val:2000};
-    if(numEl) numEl.textContent = "2000";
+    wform.addEventListener("submit", function(e){ e.preventDefault(); submitWaitlist(); });
+  })();
 
-    var tl = gsap.timeline();
-    tl.to(about,{opacity:1,duration:0.5,ease:"power2.out"})
-      .to(lines,{yPercent:0,duration:0.9,stagger:0.12,ease:"power4.out"},"-=0.3")
-      .to(lead,{opacity:1,y:0,duration:0.7,ease:"power3.out"},"-=0.5")
-      .to(rule,{scaleX:1,duration:0.8,ease:"power3.inOut"},"-=0.4")
-      .to(pills,{opacity:1,y:0,duration:0.7,stagger:0.1,ease:"power3.out"},"-=0.4")
-      .to(ctx,{opacity:1,y:0,duration:0.7,ease:"power3.out"},"-=0.3")
-      .to(counter,{val:2028,duration:1.2,ease:"power2.out",onUpdate:function(){ if(numEl) numEl.textContent = Math.round(counter.val); }},"<")
-      .to(stmt,{opacity:1,y:0,duration:0.7,ease:"power3.out"},"-=0.7");
-
-    if(aboutBack){ try{ aboutBack.focus({preventScroll:true}); }catch(e){} }
-  }
-
-  function closeAbout(){
-    if(!about) return;
-    function done(){
-      about.classList.remove("is-open");
-      about.setAttribute("aria-hidden","true");
-      if(navSobre){ try{ navSobre.focus({preventScroll:true}); }catch(e){} }
-    }
-    if(!hasGSAP || REDUCE){ about.style.opacity = "0"; done(); }
-    else { gsap.to(about,{opacity:0,duration:0.4,ease:"power2.in",onComplete:done}); }
-  }
-
-  if(navSobre)  navSobre.addEventListener("click", function(e){ e.preventDefault(); openAbout(); });
-  if(aboutBack) aboutBack.addEventListener("click", closeAbout);
-
-  /* ---- JOIN (lista de espera): revelação circular a partir do CTA ---- */
-  var join     = document.getElementById("join");
-  var navCta    = document.getElementById("navCta");
-  var joinBack  = document.getElementById("joinBack");
-  var joinForm  = document.getElementById("joinForm");
-  var joinEmail = document.getElementById("joinEmail");
-  var joinErr   = document.getElementById("joinErr");
-  var joinDone  = document.getElementById("joinDone");
-  var ox=0, oy=0;
-
-  function maxRadius(x,y){ var w=window.innerWidth,h=window.innerHeight; return Math.max(Math.hypot(x,y),Math.hypot(w-x,y),Math.hypot(x,h-y),Math.hypot(w-x,h-y)); }
-  function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
-  function clip(r){ join.style.clipPath="circle("+r+"px at "+ox+"px "+oy+"px)"; }
-
-  function resetJoinForm(){
-    if(joinForm){ joinForm.style.display=""; if(window.gsap) gsap.set(joinForm,{clearProps:"all"}); }
-    if(joinEmail) joinEmail.value="";
-    if(joinErr) joinErr.textContent="";
-    if(joinDone) joinDone.style.display="none";
-  }
-
-  function openJoin(){
-    if(!join) return;
-    var r = navCta ? navCta.getBoundingClientRect() : null;
-    ox = r ? Math.round(r.left + r.width/2) : Math.round(window.innerWidth/2);
-    oy = r ? Math.round(r.top + r.height/2) : 40;
-    resetJoinForm();
-    join.classList.add("is-open");
-    join.setAttribute("aria-hidden","false");
-
-    var top   = join.querySelectorAll(".join__top > *");
-    var lines = join.querySelectorAll(".join__h .line > span");
-    var sub   = join.querySelector(".join__sub");
-    var form  = join.querySelector(".join__form");
-    var note  = join.querySelector(".join__note");
-
-    if(!hasGSAP || REDUCE){
-      join.style.clipPath="none";
-      [].forEach.call(top,function(el){ el.style.opacity="1"; el.style.transform="none"; });
-      [sub,form,note].forEach(function(el){ if(el){ el.style.opacity="1"; el.style.transform="none"; } });
-      [].forEach.call(lines,function(el){ el.style.transform="none"; });
-      if(joinEmail){ try{ joinEmail.focus({preventScroll:true}); }catch(e){} }
-      return;
+  /* ---- CORP (seção "empresas"): 2 modais "Vamos conversar" (fornecedores / institucional),
+     abertos pelos botões da seção .corp. Front-end apenas: nenhum backend conectado, então o
+     "envio" só valida os campos e mostra o estado de sucesso, igual às demais views. Os dois
+     modais compartilham a mesma estrutura de campos, então usam a mesma factory (setupLeadForm)
+     em vez de duplicar a lógica de abrir/fechar/validar para cada um. ---- */
+  (function setupCorpLeadForms(){
+    /* abre um overlay .lead com fade+slide dos itens marcados com [data-lreveal] */
+    function openLead(overlay, backBtn){
+      overlay.classList.add("is-open");
+      overlay.setAttribute("aria-hidden","false");
+      var items = overlay.querySelectorAll("[data-lreveal]");
+      if(!hasGSAP || REDUCE){
+        overlay.style.opacity = "1";
+        items.forEach(function(el){ el.style.opacity="1"; el.style.transform="none"; });
+      } else {
+        gsap.set(overlay,{opacity:0});
+        gsap.set(items,{opacity:0,y:24});
+        var tl = gsap.timeline();
+        tl.to(overlay,{opacity:1,duration:0.5,ease:"power2.out"})
+          .to(items,{opacity:1,y:0,duration:0.8,stagger:0.08,ease:"power3.out"},"-=0.2");
+      }
+      if(backBtn){ try{ backBtn.focus({preventScroll:true}); }catch(e){} }
     }
 
-    clip(0);
-    gsap.set(top,{opacity:0,y:-10});
-    gsap.set(lines,{yPercent:110});
-    gsap.set([sub,form,note],{opacity:0,y:24});
-    var st={r:0}, mr=maxRadius(ox,oy);
-    gsap.timeline()
-      .to(st,{r:mr,duration:0.9,ease:"power3.inOut",onUpdate:function(){ clip(st.r); }})
-      .to(top,{opacity:1,y:0,duration:0.5,stagger:0.06,ease:"power3.out"},"-=0.55")
-      .to(lines,{yPercent:0,duration:0.9,stagger:0.1,ease:"power4.out"},"-=0.35")
-      .to(sub,{opacity:1,y:0,duration:0.6,ease:"power3.out"},"-=0.5")
-      .to(form,{opacity:1,y:0,duration:0.6,ease:"power3.out"},"-=0.4")
-      .to(note,{opacity:1,y:0,duration:0.5,ease:"power3.out"},"-=0.4")
-      .add(function(){ join.style.clipPath="none"; if(joinEmail){ try{ joinEmail.focus({preventScroll:true}); }catch(e){} } });
-  }
-
-  function closeJoin(){
-    if(!join) return;
-    function done(){ join.classList.remove("is-open"); join.setAttribute("aria-hidden","true"); join.style.clipPath=""; resetJoinForm(); if(navCta){ try{ navCta.focus({preventScroll:true}); }catch(e){} } }
-    if(!hasGSAP || REDUCE){ done(); return; }
-    var st={r:maxRadius(ox,oy)};
-    clip(st.r);
-    gsap.to(st,{r:0,duration:0.55,ease:"power3.inOut",onUpdate:function(){ clip(st.r); },onComplete:done});
-  }
-
-  function submitJoin(){
-    if(!joinEmail) return;
-    var v=(joinEmail.value||"").trim();
-    if(!isEmail(v)){
-      if(joinErr) joinErr.textContent="Digite um e-mail válido.";
-      var field=join.querySelector(".field");
-      if(window.gsap && !REDUCE && field) gsap.fromTo(field,{x:-7},{x:0,duration:0.5,ease:"elastic.out(1,0.35)"});
-      if(joinEmail){ try{ joinEmail.focus({preventScroll:true}); }catch(e){} }
-      return;
+    function closeLead(overlay, restoreFocusEl){
+      function done(){
+        overlay.classList.remove("is-open");
+        overlay.setAttribute("aria-hidden","true");
+        if(restoreFocusEl){ try{ restoreFocusEl.focus({preventScroll:true}); }catch(e){} }
+      }
+      if(!hasGSAP || REDUCE){ overlay.style.opacity = "0"; done(); }
+      else { gsap.to(overlay,{opacity:0,duration:0.4,ease:"power2.in",onComplete:done}); }
     }
-    if(joinErr) joinErr.textContent="";
-    /* front-end apenas: nenhum backend conectado */
-    if(!hasGSAP || REDUCE){
-      if(joinForm) joinForm.style.display="none";
-      if(joinDone) joinDone.style.display="block";
-      return;
-    }
-    var circ=join.querySelector(".check__circle"), mark=join.querySelector(".check__mark");
-    var tl=gsap.timeline();
-    tl.to(joinForm,{opacity:0,y:-12,duration:0.35,ease:"power2.in",onComplete:function(){ if(joinForm) joinForm.style.display="none"; }})
-      .set(joinDone,{display:"block",opacity:0,y:16});
-    if(circ && mark){
-      var Lc=circ.getTotalLength(), Lm=mark.getTotalLength();
-      gsap.set(circ,{strokeDasharray:Lc,strokeDashoffset:Lc});
-      gsap.set(mark,{strokeDasharray:Lm,strokeDashoffset:Lm});
-      tl.to(joinDone,{opacity:1,y:0,duration:0.5,ease:"power3.out"})
-        .to(circ,{strokeDashoffset:0,duration:0.55,ease:"power2.out"},"-=0.25")
-        .to(mark,{strokeDashoffset:0,duration:0.4,ease:"power2.out"},"-=0.1");
-    } else {
-      tl.to(joinDone,{opacity:1,y:0,duration:0.5,ease:"power3.out"});
-    }
-  }
 
-  if(navCta)   navCta.addEventListener("click", function(e){ e.preventDefault(); openJoin(); });
-  if(joinBack) joinBack.addEventListener("click", closeJoin);
-  if(joinForm) joinForm.addEventListener("submit", function(e){ e.preventDefault(); submitJoin(); });
+    /* mesmo tremor usado nos outros formulários para sinalizar um campo inválido */
+    function shake(el){ if(el && window.gsap && !REDUCE) gsap.fromTo(el,{x:-7},{x:0,duration:0.5,ease:"elastic.out(1,0.35)"}); }
+
+    /* mesma animação de sucesso (check morphing) usada na lista de espera */
+    function playCheckSuccess(formEl, doneEl){
+      if(!hasGSAP || REDUCE){
+        if(formEl) formEl.style.display = "none";
+        if(doneEl) doneEl.style.display = "block";
+        return;
+      }
+      var circ = doneEl ? doneEl.querySelector(".check__circle") : null;
+      var mark = doneEl ? doneEl.querySelector(".check__mark") : null;
+      var tl = gsap.timeline();
+      tl.to(formEl,{opacity:0,y:-12,duration:0.35,ease:"power2.in",onComplete:function(){ formEl.style.display="none"; }})
+        .set(doneEl,{display:"block",opacity:0,y:16});
+      if(circ && mark){
+        var Lc = circ.getTotalLength(), Lm = mark.getTotalLength();
+        gsap.set(circ,{strokeDasharray:Lc,strokeDashoffset:Lc});
+        gsap.set(mark,{strokeDasharray:Lm,strokeDashoffset:Lm});
+        tl.to(doneEl,{opacity:1,y:0,duration:0.5,ease:"power3.out"})
+          .to(circ,{strokeDashoffset:0,duration:0.55,ease:"power2.out"},"-=0.25")
+          .to(mark,{strokeDashoffset:0,duration:0.4,ease:"power2.out"},"-=0.1");
+      } else {
+        tl.to(doneEl,{opacity:1,y:0,duration:0.5,ease:"power3.out"});
+      }
+    }
+
+    /* monta um modal "Vamos conversar" a partir dos ids passados em opts; todos os campos são
+       obrigatórios, exceto a mensagem — única exigência explícita do pedido original */
+    function setupLeadForm(opts){
+      var overlay       = document.getElementById(opts.id);
+      var trigger        = document.getElementById(opts.triggerId);
+      if(!overlay || !trigger) return null;
+      var backBtn         = document.getElementById(opts.backId);
+      var form             = document.getElementById(opts.formId);
+      var errEl            = document.getElementById(opts.errId);
+      var doneEl           = document.getElementById(opts.doneId);
+      var nome             = document.getElementById(opts.nomeId);
+      var empresa          = document.getElementById(opts.empresaId);
+      var email            = document.getElementById(opts.emailId);
+      var whats            = document.getElementById(opts.whatsId);
+      var cargo            = document.getElementById(opts.cargoId);
+      var tipo             = document.getElementById(opts.tipoId);
+      var tipoOutroWrap    = document.getElementById(opts.tipoOutroWrapId);
+      var tipoOutro        = document.getElementById(opts.tipoOutroId);
+      var select2          = document.getElementById(opts.select2Id);
+      if(!form) return null;
+
+      /* máscara de WhatsApp: (00) 00000-0000 (mesma máscara da lista de espera) */
+      if(whats) whats.addEventListener("input", function(){
+        var v = whats.value.replace(/\D/g,"").slice(0,11);
+        var out = v;
+        if(v.length > 0) out = "("+v.slice(0,2);
+        if(v.length >= 3) out += ") "+v.slice(2, v.length>=7?7:v.length);
+        if(v.length >= 8) out += "-"+v.slice(7);
+        whats.value = out;
+      });
+
+      /* o campo "outra" só é exigido quando o tipo selecionado precisa de detalhamento */
+      if(tipo) tipo.addEventListener("change", function(){
+        var isOutra = tipo.value === "outra";
+        if(tipoOutroWrap) tipoOutroWrap.style.display = isOutra ? "" : "none";
+        if(!isOutra && tipoOutro) tipoOutro.value = "";
+      });
+
+      function resetForm(){
+        form.style.display = "";
+        if(window.gsap) gsap.set(form,{clearProps:"all"});
+        form.reset();
+        if(tipoOutroWrap) tipoOutroWrap.style.display = "none";
+        if(errEl) errEl.textContent = "";
+        if(doneEl) doneEl.style.display = "none";
+      }
+
+      function open(){ resetForm(); openLead(overlay, backBtn); }
+      function close(){ closeLead(overlay, trigger); }
+
+      function submit(){
+        var required = [
+          {el:nome,    msg:"Digite seu nome."},
+          {el:empresa, msg:"Digite o nome da empresa."},
+          {el:cargo,   msg:opts.cargoErrMsg || "Digite o seu cargo."}
+        ];
+        for(var i=0;i<required.length;i++){
+          var f = required[i];
+          if(!f.el || !(f.el.value||"").trim()){
+            if(errEl) errEl.textContent = f.msg;
+            shake(f.el && f.el.parentElement);
+            if(f.el){ try{ f.el.focus({preventScroll:true}); }catch(e){} }
+            return;
+          }
+        }
+        var emailVal = ((email && email.value) || "").trim();
+        if(!isEmail(emailVal)){
+          if(errEl) errEl.textContent = "Digite um e-mail corporativo válido.";
+          shake(email && email.parentElement);
+          if(email){ try{ email.focus({preventScroll:true}); }catch(e){} }
+          return;
+        }
+        var whatsDigits = ((whats && whats.value) || "").replace(/\D/g,"");
+        if(whatsDigits.length < 10){
+          if(errEl) errEl.textContent = "Digite um WhatsApp válido.";
+          shake(whats && whats.parentElement);
+          if(whats){ try{ whats.focus({preventScroll:true}); }catch(e){} }
+          return;
+        }
+        if(!tipo || !tipo.value){
+          if(errEl) errEl.textContent = "Selecione o tipo de empresa.";
+          shake(tipo && tipo.parentElement);
+          if(tipo){ try{ tipo.focus({preventScroll:true}); }catch(e){} }
+          return;
+        }
+        if(tipo.value === "outra" && !((tipoOutro && tipoOutro.value)||"").trim()){
+          if(errEl) errEl.textContent = "Descreva o tipo de empresa.";
+          shake(tipoOutro && tipoOutro.parentElement);
+          if(tipoOutro){ try{ tipoOutro.focus({preventScroll:true}); }catch(e){} }
+          return;
+        }
+        if(!select2 || !select2.value){
+          if(errEl) errEl.textContent = opts.select2ErrMsg;
+          shake(select2 && select2.parentElement);
+          if(select2){ try{ select2.focus({preventScroll:true}); }catch(e){} }
+          return;
+        }
+        if(errEl) errEl.textContent = "";
+        /* front-end apenas: nenhum backend conectado */
+        playCheckSuccess(form, doneEl);
+      }
+
+      trigger.addEventListener("click", function(e){ e.preventDefault(); open(); });
+      if(backBtn) backBtn.addEventListener("click", close);
+      form.addEventListener("submit", function(e){ e.preventDefault(); submit(); });
+
+      return { open:open, close:close, el:overlay };
+    }
+
+    var leadSupplier = setupLeadForm({
+      id:"leadSupplier", triggerId:"corpSupplierBtn", backId:"leadSupplierBack", formId:"leadSupplierForm",
+      errId:"leadSupplierErr", doneId:"leadSupplierDone",
+      nomeId:"leadSupplierNome", empresaId:"leadSupplierEmpresa", emailId:"leadSupplierEmail",
+      whatsId:"leadSupplierWhats", cargoId:"leadSupplierCargo",
+      tipoId:"leadSupplierTipo", tipoOutroWrapId:"leadSupplierTipoOutroWrap", tipoOutroId:"leadSupplierTipoOutro",
+      select2Id:"leadSupplierVolume", select2ErrMsg:"Selecione o volume/capacidade de energia."
+    });
+
+    var leadInstitutional = setupLeadForm({
+      id:"leadInstitutional", triggerId:"corpInstitutionalBtn", backId:"leadInstitutionalBack", formId:"leadInstitutionalForm",
+      errId:"leadInstitutionalErr", doneId:"leadInstitutionalDone",
+      nomeId:"leadInstitutionalNome", empresaId:"leadInstitutionalEmpresa", emailId:"leadInstitutionalEmail",
+      whatsId:"leadInstitutionalWhats", cargoId:"leadInstitutionalCargo",
+      tipoId:"leadInstitutionalTipo", tipoOutroWrapId:"leadInstitutionalTipoOutroWrap", tipoOutroId:"leadInstitutionalTipoOutro",
+      select2Id:"leadInstitutionalBase", select2ErrMsg:"Selecione o número aproximado de pessoas na base."
+    });
+
+    /* Esc fecha o modal atualmente aberto, igual às demais views */
+    window.addEventListener("keydown", function(e){
+      if(e.key !== "Escape") return;
+      [leadSupplier, leadInstitutional].forEach(function(instance){
+        if(instance && instance.el.classList.contains("is-open")) instance.close();
+      });
+    });
+  })();
 
   /* ---- MENU MÓVEL (≤860px): reaproveita as views existentes; não altera as animações delas ---- */
   var navToggle = document.getElementById("navToggle");
@@ -744,23 +1337,25 @@ body.has-cursor,body.has-cursor *{cursor:none}
   var mobnavClose = document.getElementById("mobnavClose");
   if(mobnavClose) mobnavClose.addEventListener("click", closeMenu);
 
-  function wireMenuItem(id, fn){
+  /* links de âncora do menu móvel: só fecham o menu, a navegação até a seção é o comportamento nativo do href */
+  function wireMenuScrollLink(id){
     var el = document.getElementById(id); if(!el) return;
-    el.addEventListener("click", function(){ closeMenu(); fn(); });
+    el.addEventListener("click", function(){ closeMenu(); });
   }
-  wireMenuItem("mSobre",  openAbout);
-  wireMenuItem("mAcesso", openAccess);
-  wireMenuItem("mCta",    openJoin);
+  ["mSolucao","mEmpresas","mRedes","mFaq","mCta"].forEach(wireMenuScrollLink);
+
+  var footerPolicy = document.getElementById("footerPolicy");
+  if(footerPolicy) footerPolicy.addEventListener("click", function(e){ e.preventDefault(); }); /* política de privacidade: ainda não existe uma página dedicada no site (mesmo tratamento do link em .wform) */
+
+  var footerYear = document.getElementById("footerYear");
+  if(footerYear) footerYear.textContent = new Date().getFullYear(); // mantém o ano do copyright sempre atualizado sem edição manual
 
   /* ao voltar ao desktop com o menu aberto, fecha-o para evitar estado preso */
   window.addEventListener("resize", function(){ if(window.innerWidth > 860 && menuIsOpen()) closeMenu(); });
 
   window.addEventListener("keydown", function(e){
     if(e.key !== "Escape") return;
-    if(access && access.classList.contains("is-open")) closeAccess();
-    else if(about && about.classList.contains("is-open")) closeAbout();
-    else if(join && join.classList.contains("is-open")) closeJoin();
-    else if(menuIsOpen()) closeMenu();
+    if(menuIsOpen()) closeMenu();
   });
 
   /* HERO tagline — neon paint-reveal on the letters (canvas; hover/fine-pointer devices only) */
@@ -779,6 +1374,7 @@ body.has-cursor,body.has-cursor *{cursor:none}
     var DPR=1, W=0, H=0, cssW=1, cssH=1, PAD=0, baselineY=0, BRUSH=20;
     var fontStr="700 40px sans-serif", letterSp="0px";
     var faint="rgba(255,255,255,.42)", neonCol="#E2FF00", textStr=tag.textContent.trim();
+    var iaEl=tag.querySelector(".tag-ia"), neonTail=iaEl?iaEl.textContent.trim():""; /* sufixo sempre neon ("IA") */
 
     var FADE=0.035;      /* fade lento por frame -> rastro repintável */
     var COOLDOWN=2600;   /* ms após o último movimento até apagar/parar o loop */
@@ -831,7 +1427,22 @@ body.has-cursor,body.has-cursor *{cursor:none}
       canvas.style.top=(-PAD)+"px"; canvas.style.height=cssH+"px";
       makeBrush();
     }
-    function drawBase(){ ctx.clearRect(0,0,cssW,cssH); ctx.fillStyle=faint; applyFont(ctx); ctx.fillText(textStr,cssW/2,baselineY); }
+    function drawBase(){
+      ctx.clearRect(0,0,cssW,cssH); applyFont(ctx);
+      /* desenha o prefixo em faint e o sufixo "IA" já em neon (baseline fixa neon).
+         como o rastro do cursor também pinta neon, passar o mouse pelo "IA" não muda nada. */
+      if(neonTail && textStr.slice(-neonTail.length)===neonTail){
+        var prefix=textStr.slice(0,textStr.length-neonTail.length);
+        var x0=cssW/2 - ctx.measureText(textStr).width/2;   /* borda esquerda do texto centralizado */
+        var prefixW=ctx.measureText(prefix).width;
+        ctx.textAlign="left";
+        ctx.fillStyle=faint;   ctx.fillText(prefix, x0, baselineY);              /* "...ENERG" em faint */
+        ctx.fillStyle=neonCol; ctx.fillText(neonTail, x0+prefixW, baselineY);    /* "IA" fixo em neon */
+        ctx.textAlign="center";
+      } else {
+        ctx.fillStyle=faint; ctx.fillText(textStr,cssW/2,baselineY);
+      }
+    }
     function dab(x,y){ tctx.drawImage(brush, x-BRUSH, y-BRUSH, BRUSH*2, BRUSH*2); }
     function stroke(a,b){
       if(!a){ dab(b.x,b.y); return; }
@@ -865,6 +1476,298 @@ body.has-cursor,body.has-cursor *{cursor:none}
     if(document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ size(); if(!running) drawBase(); }); }
   }
 
+  /* animação automática do texto 1 (por tempo, 1,5s após a intro): referências compartilhadas
+     para o playMark agendar o disparo e para o onComplete religar o scroll do texto 2. */
+  var introStarter = null, introSeq = null;
+
+  /* INTRO/REVEAL — o herói (XOK+tagline) e os dois textos vivem no mesmo pin (".reveal", sticky no topo).
+     Fluxo: a intro preenche o XOK; 1,5s depois o TEXTO 1 sobe no lugar do XOK (auto, por tempo), com a
+     revelação neon começando antecipadamente durante a subida; ao rolar, o TEXTO 2 entra por crossfade
+     e revela palavra a palavra (regras do 2o texto mantidas); seguindo a rolagem chega-se aos 4 cards.
+     A rolagem da página fica travada (lockScroll/unlockScroll) enquanto o texto 1 anima, e o scroll
+     do texto 2 fica desabilitado até a animação do texto 1 acabar (posse exclusiva das mesmas
+     propriedades, evitando que o scrub sobrescreva a animação por tempo). */
+  function setupReveal(){
+    var wrap    = document.getElementById("revealWrap");
+    var section = document.getElementById("reveal");
+    var stack   = document.getElementById("revealStack");
+    var el1     = document.getElementById("revealText1");
+    var el2     = document.getElementById("revealText2");
+    var bigmark = document.getElementById("bigmark");
+    var scrollDown = document.getElementById("scrollDown");
+    if(!wrap || !section || !stack || !el1 || !el2 || !bigmark) return;
+
+    /* mostra o ícone de "role para baixo" e o esconde no primeiro scroll do usuário (once) —
+       chamada tanto pelo fallback (sem animação por tempo) quanto pelo fim da revelação neon */
+    function showScrollDown(){
+      if(!scrollDown) return;
+      scrollDown.classList.add("is-visible");
+      window.addEventListener("scroll",function(){ scrollDown.classList.remove("is-visible"); },{once:true,passive:true});
+    }
+
+    /* separa um bloco de texto em palavras, preservando os espaços como nós de texto entre os spans */
+    function wrapWords(el){
+      var tokens = el.textContent.split(/(\s+)/);
+      el.innerHTML = tokens.map(function(t){
+        return /\S/.test(t) ? '<span class="word">'+t+'</span>' : t;
+      }).join("");
+      return el.querySelectorAll(".word");
+    }
+
+    var words1 = wrapWords(el1);
+    var words2 = wrapWords(el2);
+    if(!words1.length || !words2.length) return;
+
+    /* sem GSAP/ScrollTrigger ou com motion reduzido: sem pin sobreposto; mostra XOK e os dois textos
+       empilhados e legíveis (a revelação do XOK é resolvida no fallback do playMark) */
+    if(!hasScrollTrigger || REDUCE){
+      section.classList.remove("is-overlaid");
+      el1.style.opacity = "1"; el2.style.opacity = "1";
+      words1.forEach(function(w){ w.style.color = "var(--ink)"; });
+      words2.forEach(function(w){ w.style.color = "var(--ink)"; });
+      showScrollDown(); /* sem animação por tempo aqui, então já pode indicar o scroll de imediato */
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+    section.classList.add("is-overlaid"); /* sobrepõe XOK, texto1 e texto2 na mesma célula do pin */
+    stack.classList.add("is-enhanced");   /* sobrepõe texto1 e texto2 entre si para o crossfade */
+    lockScroll(); /* trava o scroll até o texto1 terminar de ficar neon (ver introStarter abaixo) */
+
+    var root = getComputedStyle(document.documentElement);
+    var faintColor = (root.getPropertyValue("--faint")||"").trim() || "rgba(255,255,255,.42)";
+    var neonColor  = (root.getPropertyValue("--neon")||"").trim()  || "#E2FF00";
+
+    /* estados iniciais: texto1 escondido e deslocado p/ baixo (para o slide-up), texto2 escondido;
+       o XOK (bigmark) começa invisível (CSS) e é revelado pela intro do playMark */
+    gsap.set(words1,{color:faintColor});
+    gsap.set(words2,{color:faintColor});
+    gsap.set(el1,{opacity:0,y:40});
+    gsap.set(el2,{opacity:0});
+
+    /* ===== TEXTO 2 — dirigido por SCROLL (regras mantidas): crossfade texto1->texto2 + neon =====
+       criado já, mas desabilitado até a animação automática do texto 1 terminar. */
+    var stuckDistance = Math.max(900, words2.length*60);
+    wrap.style.height = "calc(100svh + "+stuckDistance+"px)";
+    var tl2 = gsap.timeline({
+      scrollTrigger:{ trigger:wrap, start:"top top", end:"bottom bottom", scrub:0.4 }
+    });
+    tl2.fromTo(el1,{opacity:1},{opacity:0,ease:"none",duration:0.6,immediateRender:false}) /* texto1 esmaece a partir do estado final da animação por tempo */
+       .to(el2,{opacity:1,ease:"none",duration:0.6})                                        /* só então o texto2 surge no mesmo lugar */
+       .to(words2,{color:neonColor,ease:"none",duration:1,stagger:{each:0.12,from:"start"}},"+=0.1");
+    var text2ST = tl2.scrollTrigger;
+    text2ST.disable(false); /* mantém o estado atual (não reverte); religado quando o texto 1 terminar */
+
+    /* ===== TEXTO 1 — dirigido por TEMPO (2s após a intro): definido aqui, disparado pelo playMark =====
+       XOK some enquanto o texto1 sobe (slide-up); a revelação neon começa antecipadamente (durante a subida). */
+    introStarter = function(){
+      if(introSeq) return; /* idempotente */
+      introSeq = gsap.timeline({ onComplete:function(){ text2ST.enable(); ScrollTrigger.refresh(); unlockScroll(); showScrollDown(); } });
+      introSeq
+        .to(bigmark,{opacity:0,y:-22,duration:0.7,ease:"power2.inOut"})                                    /* XOK + tagline somem */
+        .to(el1,{opacity:1,y:0,duration:0.95,ease:"power3.out"},"-=0.5")                                    /* texto1 sobe no lugar do XOK (slide-up) */
+        .to(words1,{color:neonColor,ease:"none",duration:1.0,stagger:{each:0.06,from:"start"}},"-=0.8");    /* neon começa antecipadamente, durante a subida */
+    };
+  }
+
+  /* SCROLL STEPS — os 4 cards de "como funciona" revelam um a um em diagonal (sudeste) conforme o
+     scroll avança; a cada novo card revelado, o card anterior perde foco (blur + opacidade reduzida),
+     como uma escadinha de cartas parcialmente sobrepostas. Mesmo esquema de sticky-wrap do setupReveal. */
+  function setupSteps(){
+    var wrap  = document.getElementById("stepsWrap");
+    var section = document.getElementById("steps");
+    var stack = document.getElementById("stepsStack");
+    if(!wrap || !section || !stack) return;
+    var cards = Array.prototype.slice.call(stack.querySelectorAll(".scard"));
+    if(!cards.length) return;
+
+    /* sem GSAP/ScrollTrigger, com motion reduzido ou em tela de celular: cards ficam em coluna
+       normal via CSS, um após o outro, sem escadinha/sobreposição e sem o handoff animado para
+       a waitlist (mesmo fallback usado para REDUCE, agora também aplicado a ≤860px) */
+    if(!hasScrollTrigger || REDUCE || IS_MOBILE) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+    stack.classList.add("is-enhanced"); /* ativa o posicionamento absoluto em escadinha */
+
+    gsap.set(cards,{opacity:0,y:36});
+
+    /* altura extra do wrapper = rolagem (em px) em que ".steps" fica grudado no topo.
+       agora cobre apenas a fase de revelação; o "handoff" para o formulário roda depois,
+       com os cards em position:fixed (ver setupStepsHandoff). */
+    var stepDistance = 850;                          /* rolagem dedicada a cada card */
+    var stuckDistance = stepDistance * cards.length;
+    wrap.style.height = "calc(100vh + "+stuckDistance+"px)";
+
+    /* fase 1 (pinada): revela os 4 cards em escadinha diagonal, desfocando o card anterior */
+    var tl = gsap.timeline({
+      scrollTrigger:{ trigger:wrap, start:"top top", end:"bottom bottom", scrub:0.4 }
+    });
+    var revealDur = 1;                   /* duração (em unidades da timeline) da transição de entrada de cada card */
+    var holdDur = 1.2;                   /* tempo extra, nítido, que o card fica parado antes do próximo cobri-lo */
+    var segment = revealDur + holdDur;   /* intervalo entre o início da revelação de um card e do próximo */
+    cards.forEach(function(card, i){
+      var start = i * segment;
+      tl.to(card,{opacity:1,y:0,ease:"none",duration:revealDur},start);                                    /* revela o card i */
+      if(i > 0) tl.to(cards[i-1],{opacity:0.45,filter:"blur(5px)",ease:"none",duration:revealDur},start);   /* só desfoca o anterior após ele já ter ficado nítido por holdDur */
+    });
+
+    /* fase 2 (handoff): quando a seção despina, entrega os cards à rotina que os leva ao formulário.
+       passa o ScrollTrigger da revelação para que o handoff possa desligá-lo enquanto controla os cards
+       (senão o scrub da revelação continua escrevendo opacity/filter por cima e sobrescreve o handoff). */
+    setupStepsHandoff(wrap, cards, tl.scrollTrigger);
+  }
+
+  /* SCROLL STEPS -> WAITLIST (handoff): quando ".steps" termina de despinar e a página desce para
+     "Entre agora e acompanhe a construção", os 4 cards viram position:fixed e viajam formando um
+     caminho diagonal que entra por trás do formulário (z-index:1, abaixo do painel z-index:2).
+     Interpolação manual por progresso (sem timeline com scrub) para controlar posição/escala/opacidade
+     com precisão e manter continuidade com o estado final da fase de revelação. */
+  function setupStepsHandoff(wrap, cards, revealST){
+    var last  = cards.length - 1;
+    var starts = [];       /* posição/tamanho de tela de cada card, capturados uma vez */
+    var captured = false;  /* evita recapturar a cada entrada no range */
+    var active = false;    /* true enquanto os cards estão soltos em position:fixed */
+    var revealOff = false; /* true enquanto o ScrollTrigger da revelação está desligado (handoff no controle) */
+
+    /* rampa suave entre a e b (0 fora do intervalo, smoothstep dentro) */
+    function smoothstep(a, b, x){ var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t*t*(3 - 2*t); }
+
+    /* destino de cada card: área do formulário (direita), escalonado em diagonal p/ formar o "caminho" */
+    function targetFor(i){
+      var vw = window.innerWidth, vh = window.innerHeight;
+      return { x: vw*0.60 + i*vw*0.015, y: vh*0.30 + i*vh*0.05 };
+    }
+
+    /* captura a posição de tela atual dos cards (fim da revelação: ainda na escadinha, centralizados) */
+    function capture(){
+      starts = cards.map(function(card){
+        var r = card.getBoundingClientRect();
+        return { x:r.left, y:r.top, w:r.width, h:r.height };
+      });
+      captured = true;
+    }
+
+    /* solta os cards do fluxo: viram fixos na mesma posição de tela, atrás do formulário.
+       idempotente: só aplica os estilos na primeira vez (guarda pelo flag active) */
+    function toFixed(){
+      if(active) return;
+      /* tira o controle da revelação: sem isso o scrub dela continua escrevendo o estado final
+         (opacity 0.45/1) por cima do handoff logo após um salto de scroll, travando os cards visíveis */
+      if(revealST && !revealOff){ revealST.disable(false); revealOff = true; }
+      if(!captured) capture();
+      cards.forEach(function(card, i){
+        var s = starts[i];
+        card.style.position = "fixed";
+        card.style.margin = "0";
+        card.style.left = s.x + "px";
+        card.style.top  = s.y + "px";
+        card.style.width = s.w + "px";
+        card.style.height = s.h + "px";
+        card.style.zIndex = "1";           /* abaixo do formulário (painel z-index:2) */
+        card.style.pointerEvents = "none"; /* nunca bloqueia os campos do formulário */
+      });
+      active = true;
+    }
+
+    /* devolve os cards ao stack (estado da fase de revelação) ao rolar de volta para cima.
+       guarda pelo flag active: nunca limpa estilos antes de o handoff ter assumido — assim não
+       apaga o opacity:0 inicial que a fase de revelação (gsap.set) aplica nos cards ainda ocultos */
+    function restore(){
+      if(!active) return;
+      cards.forEach(function(card){
+        card.style.position = card.style.margin = card.style.left = card.style.top = "";
+        card.style.width = card.style.height = card.style.zIndex = "";
+        card.style.pointerEvents = card.style.transform = card.style.filter = card.style.opacity = "";
+      });
+      active = false;
+      /* devolve o controle à revelação e reaplica o estado dela na posição de scroll atual */
+      if(revealST && revealOff){ revealST.enable(); revealST.refresh(); revealOff = false; }
+    }
+
+    /* toda a viagem + dissolução se completa em p = HANDOFF_END, bem antes de a waitlist encher a tela.
+       assim os cards já estão invisíveis quando a borda superior do formulário sobe até a região deles
+       (~p 0.57), evitando que fiquem aparecendo por trás do painel translúcido. remapear p -> q
+       "acelera" a animação para concluí-la cedo. */
+    var HANDOFF_END = 0.43;
+    function render(p){
+      if(!active) return;
+      var q = p < HANDOFF_END ? p / HANDOFF_END : 1; /* progresso interno: 0..1, concluído em HANDOFF_END */
+      var eased = smoothstep(0, 1, q);          /* suaviza o trajeto/convergência */
+      var fade  = smoothstep(0.5, 0.92, q);     /* some no trecho final, terminando pouco antes de o form encostar (~p 0.43) */
+      cards.forEach(function(card, i){
+        var s = starts[i], t = targetFor(i);
+        var x = s.x + (t.x - s.x)*eased;         /* desloca no eixo x rumo ao formulário */
+        var y = s.y + (t.y - s.y)*eased;         /* desloca no eixo y rumo ao formulário */
+        var scale = 1 + (0.8 - 1)*eased;         /* encolhe apenas até 0.8 (bem maior que os 0.5 de antes) */
+        var sb = (i < last) ? 5 : 0;             /* blur inicial = herdado do estado de revelação */
+        var so = (i < last) ? 0.45 : 1;          /* opacidade inicial = herdada do estado de revelação */
+        card.style.left = x + "px";
+        card.style.top  = y + "px";
+        card.style.transform = "scale(" + scale + ")";
+        card.style.filter = "blur(" + (sb + (7 - sb)*eased) + "px)"; /* desfoca um pouco mais ao chegar */
+        card.style.opacity = so * (1 - fade);    /* dissolve ao alcançar o formulário */
+      });
+    }
+
+    /* progresso do handoff derivado direto da geometria do wrap, não de callbacks do ScrollTrigger:
+       p = 0 quando a base do wrap toca a base da viewport (".steps" acabou de despinar) e p = 1 quando
+       a base do wrap alcança o topo (a waitlist preencheu a tela). ler o rect a cada quadro torna o
+       estado 100% determinístico — inclusive em saltos que atravessam todo o range de uma vez (ex.:
+       restauração de posição no reload), onde os callbacks do ScrollTrigger não disparam de forma
+       confiável e deixariam os cards presos e visíveis. */
+    /* geometria do wrap em coordenadas de DOCUMENTO (estável durante a rolagem; só muda em load/resize).
+       derivar o progresso de window.scrollY — que já vem atualizado no evento de scroll — em vez de ler
+       getBoundingClientRect() no handler evita depender da atualização do rect, que sob rolagem
+       instantânea/saltos pode vir defasada e travar os cards num estado intermediário. */
+    var vpH = window.innerHeight;
+    var wrapBottomDoc = 0;
+    function measure(){
+      vpH = window.innerHeight;
+      wrapBottomDoc = wrap.getBoundingClientRect().bottom + window.scrollY; /* base do wrap em coord. de documento */
+    }
+
+    function apply(){
+      var p = (window.scrollY - wrapBottomDoc) / vpH + 1; /* 0 em "bottom bottom", 1 em "bottom top" */
+      if(p <= 0){ restore(); }                       /* antes do handoff: cards no stack (fase de revelação) */
+      else if(p >= 1){ toFixed(); render(1); }       /* depois do handoff: fixos e já dissolvidos (opacity 0) */
+      else { toFixed(); render(p); }                 /* durante: viajando por trás do formulário */
+    }
+
+    window.addEventListener("scroll", apply, { passive:true });
+    /* mudanças de layout recalculam a geometria e reavaliam (posições capturadas dependem da viewport) */
+    window.addEventListener("resize", function(){ captured = false; if(active) restore(); measure(); apply(); }, { passive:true });
+    window.addEventListener("load", function(){ measure(); apply(); }); /* re-mede após fontes/imagens assentarem o layout */
+    measure(); apply(); /* estado inicial no load (respeita a posição de scroll atual) */
+  }
+
+  /* SCROLL WAITLIST — entrada simples (não pinada) da seção de lista de espera: título, descrição,
+     os 2 cards e o painel do formulário sobem e aparecem uma única vez quando a seção entra na tela.
+     Ao contrário das seções anteriores, o formulário é alto demais (e crítico demais de usar) para
+     ficar preso no topo, então aqui não há pin nem scrub — só um fade/slide de entrada. */
+  function setupWaitlist(){
+    var section = document.getElementById("waitlist");
+    var panel   = document.getElementById("waitlistPanel");
+    if(!section || !panel) return;
+    var intro = section.querySelectorAll(".waitlist__title, .waitlist__desc, .wcard");
+
+    if(!hasScrollTrigger || REDUCE) return; /* sem JS/motion reduzido: conteúdo já visível via CSS padrão */
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.set(intro,{opacity:0,y:28});
+    gsap.set(panel,{opacity:0,y:28});
+
+    ScrollTrigger.create({
+      trigger:section,
+      start:"top 78%",
+      once:true,
+      onEnter:function(){
+        gsap.timeline()
+          .to(intro,{opacity:1,y:0,duration:0.7,stagger:0.08,ease:"power3.out"})
+          .to(panel,{opacity:1,y:0,duration:0.7,ease:"power3.out"},"-=0.5");
+      }
+    });
+  }
+
   /* giant XOK fill — runs on load (was scroll-driven) */
   function playMark(){
     var bm = document.getElementById("bigmark");
@@ -894,11 +1797,24 @@ body.has-cursor,body.has-cursor *{cursor:none}
       .to(fillRect,{attr:{width:1000},duration:1.7,ease:"power3.inOut"},"-=0.2")
       .to(tag,{opacity:1,y:0,duration:0.8,ease:"power3.out"},"-=0.55")
       .to(navItems,{opacity:1,y:0,duration:0.7,stagger:0.08,ease:"power3.out"},"-=0.1")
-      .call(setupPaint);
+      .call(setupPaint)
+      .call(scheduleIntro); /* agenda a animação automática do texto 1 (1,5s após o fim da intro) */
+  }
+
+  /* agenda a animação automática do texto 1: dispara 1,5s após o fim da intro. O scroll fica
+     travado (lockScroll, em setupReveal) durante toda a espera + a animação em si, então não há
+     como o usuário rolar antes dela terminar -- ela sempre roda por inteiro, sem ser cortada. */
+  function scheduleIntro(){
+    gsap.delayedCall(1.5, function(){ if(introStarter) introStarter(); });
   }
 
   var fired=false;
-  function go(){ if(fired) return; fired=true; playMark(); }
+  function go(){
+    if(fired) return; fired=true;
+    window.scrollTo(0,0);
+    playMark(); setupReveal(); setupSteps(); setupWaitlist();
+    setupNavGlass(); /* depois de setupReveal(): precisa da altura final de #revealWrap já aplicada */
+  }
   if(document.fonts && document.fonts.ready){ document.fonts.ready.then(go); }
   setTimeout(go, 1200); /* safety if the fonts API hangs */
 })();
