@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<!-- Política de Segurança de Conteúdo (CSP): esta página é 100% estática, sem NENHUM <script>.
+     Por isso 'script-src' é 'none' — não há hash a recomputar aqui. Se algum dia um <script> inline
+     for adicionado, será preciso liberá-lo por hash (mesmo procedimento das outras duas páginas). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'none'; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'none'; form-action 'none'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>XOK — Política de Privacidade</title>
+<meta name="description" content="Como a XOK trata os dados pessoais de quem interage com o site xokenergia.com." />
+
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0a0a;
+  --ink:#ffffff;
+  --neon:#E2FF00;
+  --faint:rgba(255,255,255,.42);
+  --muted:rgba(255,255,255,.56);
+  --line:rgba(255,255,255,.13);
+  --line-strong:rgba(255,255,255,.24);
+  --f-display:'Cabinet Grotesk','Archivo',system-ui,sans-serif;
+  --f-body:'General Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --gutter:clamp(1.25rem,6vw,4rem);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+/* as seções são alvo dos links do índice: evita que o topo do título fique colado na borda */
+[id^="s"]{scroll-margin-top:clamp(1.5rem,5vh,3rem)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--f-body);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+a{color:inherit}
+::selection{background:var(--neon);color:#000}
+:focus-visible{outline:2px solid var(--neon);outline-offset:3px;border-radius:2px}
+
+/* ---- ESTRUTURA ---- */
+/* mesma métrica dos overlays .lead ("Vamos conversar") do index.html: o gutter lateral vale para a
+   página inteira, e o topo/rodapé ficam DENTRO desse padding — nunca colados na borda da viewport */
+.doc{padding:clamp(1.4rem,3.5vw,2.6rem) var(--gutter) clamp(4rem,10vh,7rem)}
+.doc__inner{width:100%;max-width:760px;margin:0 auto}
+
+/* topo replicado de .lead__top: botão "Voltar" à esquerda, marca à direita */
+.doc__top{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:0 0 clamp(2.4rem,7vh,4rem)}
+.doc__brand{font-family:var(--f-display);font-weight:900;font-size:1.4rem;letter-spacing:-.04em;text-decoration:none}
+.doc__back{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-family:var(--f-body);font-weight:500;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:.6rem 1.1rem;text-decoration:none;
+  transition:color .3s,border-color .3s;
+}
+.doc__back:hover{color:var(--ink);border-color:var(--line-strong)}
+.doc__back .arr{display:inline-block;transition:transform .35s var(--ease)}
+.doc__back:hover .arr{transform:translateX(-4px)}
+.arr svg{width:1em;height:1em;display:block} /* chevron dimensionado pelo font-size do botão, como no index.html */
+
+/* ---- CABEÇALHO DO DOCUMENTO ---- */
+.doc__title{
+  font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:.98;
+  font-size:clamp(2.4rem,7vw,4.2rem);margin:0;
+}
+.doc__intro{
+  font-family:var(--f-body);font-weight:500;color:var(--muted);
+  font-size:clamp(1.1rem,1.5vw,1.24rem);line-height:1.62;margin:clamp(1.2rem,3vh,1.8rem) 0 0;
+}
+.doc__meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;
+  font-family:var(--f-body);font-weight:500;font-size:.98rem;
+  color:var(--faint);margin:clamp(1.4rem,4vh,2rem) 0 0;
+  padding-top:clamp(1.4rem,4vh,2rem);border-top:1px solid var(--line);
+}
+
+/* ---- ÍNDICE ---- */
+.toc{
+  margin:clamp(2.4rem,6vh,3.6rem) 0 0;padding:clamp(1.4rem,3.5vw,2rem);
+  border:1px solid var(--line);border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);
+}
+/* é um <h2> de verdade: tipografia de título (--f-display), não rótulo em caixa alta */
+.toc__title{
+  font-family:var(--f-display);font-weight:800;font-size:1.28rem;letter-spacing:-.02em;line-height:1.2;
+  color:var(--ink);margin:0 0 1.3rem;
+}
+.toc__list{list-style:none;margin:0;padding:0;display:grid;gap:.72rem}
+.toc__list li{display:flex;gap:.8rem;align-items:baseline}
+/* min-width acomoda "14." sem desalinhar os títulos de uma linha para outra */
+.toc__num{font-family:var(--f-display);font-weight:800;font-size:1.08rem;letter-spacing:-.02em;color:var(--faint);min-width:2.05rem}
+.toc__list a{
+  font-family:var(--f-body);font-weight:500;font-size:1.08rem;color:var(--muted);
+  text-decoration:none;transition:color .3s;
+}
+.toc__list a:hover{color:var(--neon)}
+
+/* ---- SEÇÕES ---- */
+.sec{margin:clamp(2.8rem,7vh,4.2rem) 0 0}
+/* o número faz parte do próprio texto do <h2> ("1. Quem trata os seus dados") */
+.sec__title{
+  font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.1;
+  font-size:clamp(1.6rem,3.6vw,2.1rem);color:var(--neon);margin:0;
+}
+.sec__subtitle{
+  font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;line-height:1.25;
+  font-size:clamp(1.16rem,2.1vw,1.34rem);margin:clamp(2rem,5vh,2.6rem) 0 0;
+}
+.sec p{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:1.06rem;line-height:1.75;margin:1.15rem 0 0}
+.sec strong{color:var(--ink);font-weight:600}
+.sec ul{margin:1.15rem 0 0;padding-left:1.15rem;display:grid;gap:.65rem}
+.sec li{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:1.06rem;line-height:1.7}
+.sec li::marker{color:var(--neon)}
+.sec a{color:var(--neon);text-decoration:none;border-bottom:1px solid rgba(226,255,0,.3);transition:border-color .3s}
+.sec a:hover{border-color:var(--neon)}
+
+/* lista de direitos / definições: rótulo em destaque seguido da explicação */
+.deflist{margin:1.4rem 0 0;display:grid;gap:1.1rem}
+.deflist p{margin:0}
+
+/* ---- TABELAS DE DADOS ---- */
+/* o wrapper rola na horizontal em telas estreitas para a página nunca rolar lateralmente */
+.tablewrap{margin:1.4rem 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{
+  font-family:var(--f-body);font-size:1rem;line-height:1.6;text-align:left;
+  padding:.85rem 1.1rem;border-bottom:1px solid var(--line);vertical-align:top;
+}
+/* o fundo levemente claro e o peso 600 já separam o cabeçalho das células — sem caixa alta */
+thead th{
+  font-weight:600;font-size:1rem;color:var(--ink);
+  background:rgba(255,255,255,.022);white-space:nowrap;
+}
+tbody th{font-weight:600;color:var(--ink);white-space:nowrap}
+tbody td{font-weight:400;color:var(--muted)}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
+
+/* ---- RODAPÉ ---- */
+/* fica dentro de .doc__inner, alinhado à coluna de texto */
+.doc__foot{
+  margin:clamp(3.5rem,9vh,5.5rem) 0 0;
+  padding-top:clamp(1.6rem,4vh,2.2rem);border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;
+}
+.doc__foot p,.doc__foot a{
+  font-family:var(--f-body);font-weight:500;font-size:.94rem;color:var(--faint);margin:0;text-decoration:none;
+}
+.doc__foot a{transition:color .3s}
+.doc__foot a:hover{color:var(--ink)}
+
+@media(max-width:520px){
+  .doc__meta{flex-direction:column;gap:.4rem}
+}
+</style>
+</head>
+<body>
+
+<main class="doc">
+
+  <header class="doc__top">
+    <a class="doc__back" href="../"><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</a>
+    <span class="doc__brand">XOK</span>
+  </header>
+
+  <div class="doc__inner">
+
+    <h1 class="doc__title">Política de Privacidade</h1>
+    <p class="doc__intro">Como a XOK, atuando sobre o CNPJ 41.720.700/0001-38, pertencente à HUB 22 LTDA, trata os dados pessoais de quem interage com o site xokenergia.com.</p>
+    <div class="doc__meta">
+      <span>Versão 0.1</span>
+      <span>Última atualização 17 de agosto de 2026</span>
+      <span>Aplica-se a xokenergia.com</span>
+    </div>
+
+    <nav class="toc" aria-label="Índice da política">
+      <h2 class="toc__title">Nesta política</h2>
+      <ol class="toc__list">
+        <li><span class="toc__num">1.</span><a href="#s01">Quem trata os seus dados</a></li>
+        <li><span class="toc__num">2.</span><a href="#s02">A quem esta política se aplica</a></li>
+        <li><span class="toc__num">3.</span><a href="#s03">Quais dados coletamos</a></li>
+        <li><span class="toc__num">4.</span><a href="#s04">Por que coletamos</a></li>
+        <li><span class="toc__num">5.</span><a href="#s05">Base legal</a></li>
+        <li><span class="toc__num">6.</span><a href="#s06">Por quanto tempo guardamos</a></li>
+        <li><span class="toc__num">7.</span><a href="#s07">Com quem compartilhamos</a></li>
+        <li><span class="toc__num">8.</span><a href="#s08">Como protegemos os seus dados</a></li>
+        <li><span class="toc__num">9.</span><a href="#s09">Seus direitos</a></li>
+        <li><span class="toc__num">10.</span><a href="#s10">Como revogar o consentimento ou se opor ao tratamento</a></li>
+        <li><span class="toc__num">11.</span><a href="#s11">Cookies</a></li>
+        <li><span class="toc__num">12.</span><a href="#s12">Menores de idade</a></li>
+        <li><span class="toc__num">13.</span><a href="#s13">Alterações a esta política</a></li>
+        <li><span class="toc__num">14.</span><a href="#s14">Fale com a gente</a></li>
+      </ol>
+    </nav>
+
+    <section class="sec" id="s01">
+      <h2 class="sec__title">1. Quem trata os seus dados</h2>
+      <p>A XOK é a controladora dos dados pessoais tratados através dos formulários disponíveis no site xokenergia.com. Isso significa que somos a empresa responsável por decidir por que e como os seus dados são usados, e por garantir que esta política seja cumprida.</p>
+      <p>A XOK está em fase pré-operacional. Ainda não comercializa energia. Nada relacionado a este site gera cobrança, contrato ou proposta comercial vinculante.</p>
+    </section>
+
+    <section class="sec" id="s02">
+      <h2 class="sec__title">2. A quem esta política se aplica</h2>
+      <p>Este site atende três públicos distintos, cada um com um formulário próprio. As seções seguintes indicam, sempre que necessário, qual regra vale para qual público:</p>
+      <div class="deflist">
+        <p><strong>Consumidor residencial.</strong> Pessoa física que se cadastra na lista de espera para ter acesso à plataforma quando ela for lançada, e recebe, enquanto isso, uma atualização mensal sobre o mercado de energia por e-mail.</p>
+        <p><strong>Comercializador ou gerador de energia.</strong> Pessoa física que representa uma empresa comercializadora ou geradora de energia e envia um formulário de interesse em parceria com a XOK.</p>
+        <p><strong>Empresa, órgão público ou sindicato.</strong> Pessoa física que representa uma empresa, um órgão público ou um sindicato e envia um formulário de interesse relacionado à base de pessoas que essa entidade representa (colaboradores, servidores, associados ou filiados).</p>
+      </div>
+      <p>Nos dois últimos casos, os dados preenchidos no formulário identificam uma pessoa física (quem preenche), ainda que o contato seja feito em nome de uma pessoa jurídica ou entidade. Por isso, a LGPD se aplica igualmente a esses dados.</p>
+    </section>
+
+    <section class="sec" id="s03">
+      <h2 class="sec__title">3. Quais dados coletamos</h2>
+      <p>Coletamos apenas o que você preenche no formulário correspondente ao seu perfil.</p>
+
+      <h3 class="sec__subtitle">3.1 Lista de espera (consumidor residencial)</h3>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Dado</th><th scope="col">Obrigatório</th><th scope="col">Para que usamos</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Nome</th><td>Sim</td><td>Identificar o seu cadastro e personalizar o contato.</td></tr>
+            <tr><th scope="row">E-mail</th><td>Sim</td><td>Enviar atualizações sobre a abertura do mercado e o lançamento da plataforma.</td></tr>
+            <tr><th scope="row">CEP</th><td>Não</td><td>Saber se já existe oferta disponível para a sua região.</td></tr>
+            <tr><th scope="row">WhatsApp</th><td>Não</td><td>Contato mais rápido, quando você preferir esse canal.</td></tr>
+            <tr><th scope="row">Distribuidora</th><td>Não</td><td>Entender o seu contexto regulatório local.</td></tr>
+            <tr><th scope="row">Valor médio da conta</th><td>Não</td><td>Estimar se existe oferta compatível com o seu perfil de consumo.</td></tr>
+            <tr><th scope="row">Tipo de imóvel</th><td>Não</td><td>Segmentar o seu perfil (residencial, comercial, rural, condomínio).</td></tr>
+            <tr><th scope="row">Vínculos declarados</th><td>Não</td><td>Identificar elegibilidade para condições específicas de determinados grupos.</td></tr>
+            <tr><th scope="row">Fatura de energia</th><td>Não</td><td>Entender o padrão de consumo e testar a leitura automática da plataforma.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sec__subtitle">3.2 Formulário de interesse: comercializadores e geradores de energia</h3>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Dado</th><th scope="col">Obrigatório</th><th scope="col">Para que usamos</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Nome</th><td>Sim</td><td>Identificar quem está em contato conosco.</td></tr>
+            <tr><th scope="row">Empresa</th><td>Sim</td><td>Identificar a comercializadora ou geradora representada.</td></tr>
+            <tr><th scope="row">E-mail corporativo</th><td>Sim</td><td>Canal principal de contato sobre a parceria.</td></tr>
+            <tr><th scope="row">WhatsApp</th><td>Não</td><td>Contato mais rápido, quando preferido.</td></tr>
+            <tr><th scope="row">Cargo</th><td>Sim</td><td>Entender o nível de decisão do contato dentro da empresa.</td></tr>
+            <tr><th scope="row">Tipo de empresa</th><td>Sim</td><td>Classificar o perfil do potencial parceiro (comercializadora, gerador, outro).</td></tr>
+            <tr><th scope="row">Volume/capacidade de energia</th><td>Sim</td><td>Avaliar a viabilidade e o dimensionamento de uma eventual parceria.</td></tr>
+            <tr><th scope="row">Mensagem</th><td>Não</td><td>Entender o contexto específico do interesse manifestado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sec__subtitle">3.3 Formulário de interesse: empresas, órgãos públicos e sindicatos</h3>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Dado</th><th scope="col">Obrigatório</th><th scope="col">Para que usamos</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Nome</th><td>Sim</td><td>Identificar quem está em contato conosco.</td></tr>
+            <tr><th scope="row">Empresa</th><td>Sim</td><td>Identificar a entidade representada.</td></tr>
+            <tr><th scope="row">E-mail corporativo</th><td>Sim</td><td>Canal principal de contato sobre a parceria.</td></tr>
+            <tr><th scope="row">WhatsApp</th><td>Não</td><td>Contato mais rápido, quando preferido.</td></tr>
+            <tr><th scope="row">Cargo</th><td>Sim</td><td>Entender o nível de decisão do contato dentro da entidade.</td></tr>
+            <tr><th scope="row">Tipo de empresa</th><td>Sim</td><td>Classificar o perfil da entidade (empresa privada, órgão público, sindicato).</td></tr>
+            <tr><th scope="row">Número aproximado de pessoas na base</th><td>Sim</td><td>Dimensionar o alcance de uma eventual parceria voltada aos colaboradores, servidores ou associados.</td></tr>
+            <tr><th scope="row">Mensagem</th><td>Não</td><td>Entender o contexto específico do interesse manifestado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Em nenhum dos três formulários coletamos dados sensíveis nos termos do art. 5º, II da LGPD (origem racial, convicção religiosa, saúde, dados biométricos e afins), e pedimos que você não os inclua em campos livres, mensagens ou na fatura enviada.</p>
+    </section>
+
+    <section class="sec" id="s04">
+      <h2 class="sec__title">4. Por que coletamos</h2>
+      <p><strong>Para quem está na lista de espera residencial</strong>, usamos os dados para:</p>
+      <ul>
+        <li>Manter você informado, por e-mail, sobre o andamento da abertura do mercado livre de energia e o lançamento da plataforma XOK;</li>
+        <li>Avisar quando existir oferta compatível com o seu perfil e a sua região;</li>
+        <li>Convidar você para participar dos primeiros testes da plataforma, caso tenha manifestado interesse;</li>
+        <li>Entender, de forma agregada, o padrão de consumo de quem está na lista, para calibrar a leitura automática de faturas da plataforma;</li>
+        <li>Definir a ordem de prioridade de convite para os testes e para o lançamento.</li>
+      </ul>
+      <p><strong>Para quem envia formulário de interesse como comercializador, gerador, empresa, órgão público ou sindicato</strong>, usamos os dados para:</p>
+      <ul>
+        <li>Avaliar a viabilidade de uma parceria com a entidade que você representa;</li>
+        <li>Entrar em contato para dar continuidade à conversa comercial ou institucional;</li>
+        <li>Organizar e priorizar internamente os contatos recebidos, conforme o estágio de desenvolvimento da XOK;</li>
+        <li>Manter registro do histórico de interações para fins de relacionamento comercial.</li>
+      </ul>
+      <p>Em nenhum caso usamos os seus dados para publicidade paga direcionada a terceiros, venda de dados, ou qualquer finalidade que não esteja descrita nesta política.</p>
+    </section>
+
+    <section class="sec" id="s05">
+      <h2 class="sec__title">5. Base legal</h2>
+      <p><strong>Lista de espera residencial.</strong> Tratamos os seus dados com base no seu consentimento (art. 7º, I da Lei nº 13.709/2018, LGPD), manifestado ao marcar a caixa de autorização no formulário de cadastro. Sem esse consentimento, não incluímos você na lista nem enviamos comunicações.</p>
+      <p><strong>Formulários de interesse (comercializadores, geradores, empresas, órgãos públicos e sindicatos).</strong> Tratamos os seus dados com base na execução de procedimentos preliminares relacionados a um contrato ou parceria do qual você é parte ou representante (art. 7º, V da LGPD), a pedido do titular, e no legítimo interesse da XOK em dar andamento a contatos comerciais e institucionais espontaneamente iniciados por você (art. 7º, IX da LGPD). O uso desses dados fica limitado ao necessário e legítimo para essa finalidade, respeitando as expectativas de quem preencheu o formulário.</p>
+    </section>
+
+    <section class="sec" id="s06">
+      <h2 class="sec__title">6. Por quanto tempo guardamos</h2>
+      <p><strong>Lista de espera residencial.</strong> Guardamos os seus dados enquanto você permanecer na lista ou até que revogue o consentimento, o que ocorrer primeiro. Após a revogação ou a solicitação de exclusão, apagamos os dados em até 30 dias, exceto quando a lei exigir retenção por prazo maior.</p>
+      <p><strong>Formulários de interesse.</strong> Guardamos os seus dados pelo tempo necessário à avaliação e ao eventual desenvolvimento da parceria, e por até 24 meses após o último contato, caso a parceria não avance, para permitir a retomada de conversa. Findo esse prazo, ou mediante solicitação de exclusão, apagamos os dados em até 30 dias, exceto quando a lei exigir retenção por prazo maior.</p>
+    </section>
+
+    <section class="sec" id="s07">
+      <h2 class="sec__title">7. Com quem compartilhamos</h2>
+      <p>Não vendemos os seus dados. Podemos compartilhar dados estritamente com prestadores de serviço que operam a nossa infraestrutura, por exemplo hospedagem, envio de e-mail, armazenamento de arquivos e ferramenta de gestão de relacionamento (CRM) usada para organizar os contatos recebidos pelos formulários de interesse, sempre sob obrigação contratual de confidencialidade e apenas na medida necessária para operar o site e conduzir os contatos comerciais e institucionais.</p>
+    </section>
+
+    <section class="sec" id="s08">
+      <h2 class="sec__title">8. Como protegemos os seus dados</h2>
+      <p>Adotamos medidas técnicas e administrativas compatíveis com o estágio atual da empresa para proteger os seus dados contra acesso não autorizado, perda ou vazamento, incluindo controle de acesso restrito à equipe que precisa desses dados para operar a lista de espera e conduzir os contatos comerciais e institucionais recebidos pelos formulários.</p>
+    </section>
+
+    <section class="sec" id="s09">
+      <h2 class="sec__title">9. Seus direitos</h2>
+      <p>Nos termos do art. 18 da LGPD, você pode, a qualquer momento e mediante solicitação:</p>
+      <div class="deflist">
+        <p><strong>Confirmação e acesso.</strong> Saber se tratamos os seus dados e obter uma cópia deles.</p>
+        <p><strong>Correção.</strong> Atualizar dados incompletos, inexatos ou desatualizados.</p>
+        <p><strong>Anonimização ou bloqueio.</strong> Pedir que dados desnecessários sejam anonimizados ou bloqueados.</p>
+        <p><strong>Eliminação.</strong> Solicitar a exclusão dos dados tratados com base no seu consentimento, ou opor-se ao tratamento baseado em legítimo interesse, nos termos da <a href="#s10">seção 10</a>.</p>
+        <p><strong>Portabilidade.</strong> Pedir a transferência dos dados a outro fornecedor de serviço.</p>
+        <p><strong>Informação sobre compartilhamento.</strong> Saber com quais entidades públicas ou privadas compartilhamos dados.</p>
+        <p><strong>Revisão de decisões automatizadas.</strong> Pedir revisão de decisões tomadas unicamente por meios automatizados.</p>
+      </div>
+      <p>Para exercer qualquer um desses direitos, use os canais descritos na <a href="#s14">seção 14</a>.</p>
+    </section>
+
+    <section class="sec" id="s10">
+      <h2 class="sec__title">10. Como revogar o consentimento ou se opor ao tratamento</h2>
+      <p><strong>Se você está na lista de espera residencial</strong>, pode revogar o consentimento a qualquer momento, sem necessidade de justificativa, de duas formas: clicando no link de descadastro presente em qualquer e-mail que enviarmos, ou enviando um pedido pelo canal indicado na <a href="#s14">seção 14</a>. A revogação não afeta a legalidade do tratamento realizado antes dela, e leva ao encerramento do seu cadastro na lista de espera.</p>
+      <p><strong>Se você enviou um formulário de interesse como comercializador, gerador, empresa, órgão público ou sindicato</strong>, o tratamento não depende de consentimento, mas você pode, a qualquer momento, se opor ao tratamento nos termos do art. 18, §2º da LGPD, enviando um pedido pelo canal indicado na <a href="#s14">seção 14</a>. A partir da oposição, encerramos o uso ativo dos seus dados para fins de contato comercial, salvo eventual necessidade de retenção por obrigação legal.</p>
+    </section>
+
+    <section class="sec" id="s11">
+      <h2 class="sec__title">11. Cookies</h2>
+      <p>Hoje o site xokenergia.com não utiliza cookies de rastreamento ou ferramentas de analytics de terceiros, apenas os recursos técnicos necessários para o funcionamento da página.</p>
+    </section>
+
+    <section class="sec" id="s12">
+      <h2 class="sec__title">12. Menores de idade</h2>
+      <p>O cadastro na lista de espera é destinado a pessoas maiores de 18 anos, por envolver a titularidade de uma unidade consumidora de energia. Os formulários de interesse institucional são destinados a representantes maiores de 18 anos, atuando em nome de uma empresa, órgão público ou sindicato. Não coletamos intencionalmente dados de menores de idade.</p>
+    </section>
+
+    <section class="sec" id="s13">
+      <h2 class="sec__title">13. Alterações a esta política</h2>
+      <p>Podemos atualizar esta política conforme a XOK evolui de fase pré-operacional para operação comercial. Alterações relevantes serão comunicadas por e-mail a quem estiver na lista de espera e, quando aplicável, a quem tiver formulário de interesse institucional em aberto, e a data no topo deste documento será atualizada.</p>
+    </section>
+
+    <section class="sec" id="s14">
+      <h2 class="sec__title">14. Fale com a gente</h2>
+      <p>Para dúvidas, solicitações sobre os seus dados, revogação de consentimento ou oposição ao tratamento, entre em contato pelo e-mail <a href="mailto:rodrigo@cross.business">rodrigo@cross.business</a>.</p>
+    </section>
+
+    <footer class="doc__foot">
+      <p>&copy; 2026 XOK. Desenvolvida pela Hub22.</p>
+      <a href="../">xokenergia.com</a>
+    </footer>
+
+  </div>
+</main>
+
+</body>
+</html>

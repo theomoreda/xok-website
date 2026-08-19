@@ -3,8 +3,10 @@
 <head>
 <!-- Política de Segurança de Conteúdo (CSP): o <script> inline desta página é liberado por HASH (sha256).
      IMPORTANTE: se você editar aquele <script> (no fim do <body>), o hash muda e o navegador BLOQUEIA o script
-     (o gate/login para de funcionar). Nesse caso, recompute o hash e atualize 'script-src' abaixo. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-QBMr31/sV4Dw7tR9BbhPDrkiJPudk5xOediBGKqpb2A='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self'; form-action 'self'" />
+     (o gate para de funcionar). Nesse caso, recompute o hash e atualize 'script-src' abaixo.
+     connect-src libera a Edge Function `investor-auth`, que confere o acesso e devolve os links —
+     nenhuma URL do material existe neste arquivo, que e servido publicamente pelo GitHub Pages. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-HDFaUIqs82dJkYPfZvCDxcxZ65rWPppSSTdj8c2aM3Q='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -64,6 +66,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .wform__submit{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:1rem;color:#0a0a0a;background:var(--neon);border:none;border-radius:10px;padding:1rem 1.6rem;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
 .wform__submit:hover{transform:translateY(-2px);box-shadow:0 12px 34px -12px rgba(226,255,0,.55)}
 .wform__submit:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.gate__step[hidden]{display:none}
+.gate__aux{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.gate__link{font-family:var(--f-body);font-weight:500;font-size:.84rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer;background:none;border:none;padding:0;transition:color .3s}
+.gate__link:hover{color:var(--ink)}
+.gate__link:disabled{opacity:.45;cursor:not-allowed;text-decoration:none}
+.gate__ok{font-family:var(--f-body);font-weight:500;font-size:.86rem;color:var(--muted);margin:0;line-height:1.5}
+.gate__ok:empty{display:none}
 .wform__err{font-family:var(--f-body);font-weight:500;font-size:.86rem;color:#ff6b6b;margin:0}
 .wform__err:empty{display:none;margin:0}
 
@@ -113,18 +122,30 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   <div class="gate__panel">
     <span class="gate__brand">XOK</span>
     <h1 class="gate__title">Acesso restrito</h1>
-    <p class="gate__sub">Área exclusiva para investidores. Informe suas credenciais para continuar.</p>
+    <p class="gate__sub" id="gateSub">Área exclusiva para investidores. Informe o e-mail que recebeu o convite e enviaremos um código de acesso.</p>
     <form class="gate__form" id="gateForm" autocomplete="off" novalidate>
-      <div class="wf">
-        <label class="wf__label" for="gateUser">Usuário</label>
-        <input class="wf__input" id="gateUser" type="text" autocomplete="username" required />
+
+      <div class="gate__step" id="stepEmail">
+        <div class="wf">
+          <label class="wf__label" for="gateEmail">E-mail</label>
+          <input class="wf__input" id="gateEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@empresa.com" />
+        </div>
       </div>
-      <div class="wf">
-        <label class="wf__label" for="gatePass">Senha</label>
-        <input class="wf__input" id="gatePass" type="password" autocomplete="current-password" required />
+
+      <div class="gate__step" id="stepCodigo" hidden>
+        <div class="wf">
+          <label class="wf__label" for="gateCodigo">Código de acesso</label>
+          <input class="wf__input" id="gateCodigo" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="10" />
+        </div>
+        <div class="gate__aux">
+          <button class="gate__link" id="gateVoltar" type="button">Usar outro e-mail</button>
+          <button class="gate__link" id="gateReenviar" type="button">Reenviar código</button>
+        </div>
       </div>
-      <button class="wform__submit" id="gateSubmit" type="submit">Entrar</button>
-      <p class="wform__err" id="gateErr" role="alert"></p>
+
+      <button class="wform__submit" id="gateSubmit" type="submit">Enviar código</button>
+      <p class="gate__ok" id="gateOk" role="status" aria-live="polite"></p>
+      <p class="wform__err" id="gateErr" role="alert" aria-live="polite"></p>
     </form>
   </div>
 </section>
@@ -140,7 +161,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     <p class="content__intro">Apresentações reservadas da XOK. Aqui você conhece a solução que estamos desenvolvendo.</p>
 
     <div class="access__cards">
-      <a class="acard" id="cardDeck" data-key="deck" target="_blank" rel="noopener noreferrer">
+      <a class="acard acard--pending" id="cardDeck" data-key="deck" target="_blank" rel="noopener noreferrer">
         <span class="acard__body">
           <span class="acard__title">Pitch Deck</span>
           <span class="acard__desc">Apresentação institucional da empresa, para investidores.</span>
@@ -151,7 +172,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         </span>
       </a>
 
-      <a class="acard" id="cardOnePager" data-key="onepager" target="_blank" rel="noopener noreferrer">
+      <a class="acard acard--pending" id="cardOnePager" data-key="onepager" target="_blank" rel="noopener noreferrer">
         <span class="acard__body">
           <span class="acard__title">One-pager</span>
           <span class="acard__desc">Resumo executivo de uma página sobre a XOK.</span>
@@ -162,7 +183,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         </span>
       </a>
 
-      <a class="acard" id="cardProto" data-key="proto" target="_blank" rel="noopener noreferrer">
+      <a class="acard acard--pending" id="cardProto" data-key="proto" target="_blank" rel="noopener noreferrer">
         <span class="acard__body">
           <span class="acard__title">Protótipo do app</span>
           <span class="acard__desc">Demonstração do protótipo funcional do app da XOK.</span>
@@ -173,7 +194,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         </span>
       </a>
 
-      <a class="acard" id="cardSchedule" data-key="schedule" target="_blank" rel="noopener noreferrer">
+      <a class="acard acard--pending" id="cardSchedule" data-key="schedule" target="_blank" rel="noopener noreferrer">
         <span class="acard__body">
           <span class="acard__title">Agendamento</span>
           <span class="acard__desc">Marque uma conversa com o time da XOK.</span>
@@ -193,87 +214,185 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 (function(){
   "use strict";
 
-  /* =======================================================
-     LINKS DO MATERIAL — cole as URLs aqui quando tiver.
-     Enquanto vazias, a card correspondente fica esmaecida e inativa.
-     ======================================================= */
-  var LINKS = {
-    deck:     "https://docsend.com/v/phty2/xok-pitch-deck",            /* pitch deck institucional */
-    onepager: "",                                                       /* resumo executivo (PDF/DocSend/Drive) */
-    proto:    "https://docsend.com/v/phty2/demonstracao-prototipo-xok", /* protótipo funcional do app XOK */
-    schedule: ""                                                        /* link de agendamento (Calendly, Cal.com, etc.) */
-  };
+  /* =========================================================================
+     Não há segredo nesta página — nem link, nem hash de senha, nem credencial.
+     Este arquivo é servido publicamente pelo GitHub Pages: o que estiver aqui é
+     legível com Ctrl+U, com ou sem login. Foi exatamente esse o problema da
+     versão anterior, que trazia as URLs do DocSend em texto puro logo acima de
+     um "gate" que apenas decidia se as exibia.
 
-  /* hash SHA-256 de "usuario:senha" — nunca a credencial em texto puro no código-fonte */
-  var AUTH_HASH = "5516c1dc80c660190161ffb0a89df1e9ea8011486699a204615d6e25e8464f94";
-  var SESSION_KEY = "xok_investidores_auth";
+     Agora quem decide é o servidor: a Edge Function `investor-auth` confere o
+     e-mail contra uma allowlist privada, envia um código numérico por e-mail e só
+     devolve as URLs depois que o código volta certo. Os links chegam por rede,
+     já autenticados, e nunca fazem parte deste HTML.
+     ========================================================================= */
+  var API_URL = "https://wdeodcypdjjcxjybcvhz.supabase.co/functions/v1/investor-auth";
+  var API_TIMEOUT = 20000;
 
-  var gate = document.getElementById("gate");
-  var content = document.getElementById("content");
-  var gateForm = document.getElementById("gateForm");
-  var gateUser = document.getElementById("gateUser");
-  var gatePass = document.getElementById("gatePass");
-  var gateErr = document.getElementById("gateErr");
+  var gate       = document.getElementById("gate");
+  var content    = document.getElementById("content");
+  var gateForm   = document.getElementById("gateForm");
+  var gateSub    = document.getElementById("gateSub");
+  var gateEmail  = document.getElementById("gateEmail");
+  var gateCodigo = document.getElementById("gateCodigo");
+  var gateErr    = document.getElementById("gateErr");
+  var gateOk     = document.getElementById("gateOk");
   var gateSubmit = document.getElementById("gateSubmit");
+  var stepEmail  = document.getElementById("stepEmail");
+  var stepCodigo = document.getElementById("stepCodigo");
+  var gateVoltar = document.getElementById("gateVoltar");
+  var gateReenviar = document.getElementById("gateReenviar");
+
+  var TEXTO_INICIAL = "Área exclusiva para investidores. Informe o e-mail que recebeu o convite e enviaremos um código de acesso.";
+  var etapa = "email";
+
+  function chamar(corpo){
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, API_TIMEOUT);
+    var generico = "Não foi possível concluir agora. Tente novamente em instantes.";
+    return fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(res){
+      return res.json().catch(function(){ return null; }).then(function(dados){
+        if(res.ok && dados && dados.ok === true) return { ok:true, links:(dados.links || {}) };
+        return { ok:false, erro:(dados && dados.erro) || generico };
+      });
+    }).catch(function(){
+      return { ok:false, erro:"Sem conexão com o servidor. Verifique sua internet e tente novamente." };
+    }).then(function(r){ clearTimeout(timer); return r; });
+  }
+
+  function rotulo(){ return etapa === "email" ? "Enviar código" : "Entrar"; }
+
+  function ocupado(estado){
+    gateSubmit.disabled = estado;
+    gateSubmit.textContent = estado ? "Aguarde…" : rotulo();
+    if(gateReenviar) gateReenviar.disabled = estado;
+  }
+
+  function irParaCodigo(email){
+    etapa = "codigo";
+    stepEmail.hidden = true;
+    stepCodigo.hidden = false;
+    gateSubmit.textContent = rotulo();
+    gateSub.textContent = "Enviamos um código para " + email + ". Ele expira em alguns minutos.";
+    gateCodigo.value = "";
+    try{ gateCodigo.focus(); }catch(e){}
+  }
+
+  function irParaEmail(){
+    etapa = "email";
+    stepCodigo.hidden = true;
+    stepEmail.hidden = false;
+    gateSubmit.textContent = rotulo();
+    gateSub.textContent = TEXTO_INICIAL;
+    gateErr.textContent = "";
+    gateOk.textContent = "";
+    try{ gateEmail.focus(); }catch(e){}
+  }
+
+  /* só dígitos, para colar o código do e-mail sem quebrar */
+  if(gateCodigo) gateCodigo.addEventListener("input", function(){
+    gateCodigo.value = gateCodigo.value.replace(/\D/g,"").slice(0,10);
+  });
 
   function wireCard(id, url){
     var el = document.getElementById(id); if(!el) return;
     if(url){ el.setAttribute("href", url); el.classList.remove("acard--pending"); }
     else { el.removeAttribute("href"); el.classList.add("acard--pending"); }
   }
-  wireCard("cardDeck", LINKS.deck);
-  wireCard("cardOnePager", LINKS.onepager);
-  wireCard("cardProto", LINKS.proto);
-  wireCard("cardSchedule", LINKS.schedule);
 
-  function showContent(){
+  /* As cards nascem inertes no HTML e só recebem href com a resposta do servidor.
+     Chave sem link continua esmaecida, como faziam as entradas vazias do antigo
+     objeto LINKS. */
+  function mostrarConteudo(links){
+    wireCard("cardDeck",     links.deck);
+    wireCard("cardOnePager", links.onepager);
+    wireCard("cardProto",    links.proto);
+    wireCard("cardSchedule", links.schedule);
     gate.style.display = "none";
     content.classList.add("is-visible");
   }
-  function showGate(){
-    content.classList.remove("is-visible");
-    gate.style.display = "flex";
+
+  function solicitar(email, reenvio){
+    ocupado(true);
+    chamar({ acao:"solicitar", email:email }).then(function(r){
+      ocupado(false);
+      if(!r.ok){ gateErr.textContent = r.erro; return; }
+      gateErr.textContent = "";
+      /* A resposta é a mesma para e-mail autorizado e não autorizado, de propósito:
+         diferenciar transformaria esta página num verificador de quem investe na
+         XOK, varrível de fora sem nunca entrar. */
+      if(reenvio){
+        gateOk.textContent = "Código reenviado. Confira também a caixa de spam.";
+      } else {
+        irParaCodigo(email);
+        gateOk.textContent = "Se este e-mail estiver autorizado, o código chegará em instantes. Confira também a caixa de spam.";
+      }
+    });
   }
 
-  /* mantém a sessão autenticada apenas enquanto a aba estiver aberta (sessionStorage) */
-  if(sessionStorage.getItem(SESSION_KEY) === "1"){ showContent(); }
-
-  async function sha256Hex(str){
-    var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(digest)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+  function verificar(email, codigo){
+    ocupado(true);
+    chamar({ acao:"verificar", email:email, codigo:codigo }).then(function(r){
+      ocupado(false);
+      if(!r.ok){
+        gateErr.textContent = r.erro;
+        gateCodigo.value = "";
+        try{ gateCodigo.focus(); }catch(e){}
+        return;
+      }
+      gateErr.textContent = "";
+      gateOk.textContent = "";
+      mostrarConteudo(r.links);
+    });
   }
 
   gateForm.addEventListener("submit", function(e){
     e.preventDefault();
     gateErr.textContent = "";
+    var email = (gateEmail.value || "").trim().toLowerCase();
 
-    if(!window.crypto || !window.crypto.subtle){
-      gateErr.textContent = "Este navegador não suporta o acesso seguro necessário. Tente atualizar o navegador ou usar outro dispositivo.";
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      gateErr.textContent = "Digite um e-mail válido.";
+      try{ gateEmail.focus(); }catch(err){}
       return;
     }
+    if(etapa === "email"){ solicitar(email, false); return; }
 
-    gateSubmit.disabled = true;
-    var candidate = gateUser.value + ":" + gatePass.value;
-
-    sha256Hex(candidate).then(function(hex){
-      gateSubmit.disabled = false;
-      if(hex === AUTH_HASH){
-        sessionStorage.setItem(SESSION_KEY, "1");
-        showContent();
-      } else {
-        gateErr.textContent = "Usuário ou senha incorretos.";
-        gatePass.value = "";
-        gatePass.focus();
-      }
-    });
+    var codigo = (gateCodigo.value || "").replace(/\D/g,"");
+    /* O comprimento do OTP é configurável no Supabase (Email OTP Length, 6 a 10).
+       Fixar 6 aqui faria o gate parar de aceitar códigos válidos se alguém mexer
+       naquela configuração — e a falha apareceria como "código inválido", que
+       manda procurar no lugar errado. */
+    if(codigo.length < 6 || codigo.length > 10){
+      gateErr.textContent = "Digite o código que você recebeu por e-mail.";
+      try{ gateCodigo.focus(); }catch(err){}
+      return;
+    }
+    verificar(email, codigo);
   });
 
+  if(gateVoltar) gateVoltar.addEventListener("click", irParaEmail);
+  if(gateReenviar) gateReenviar.addEventListener("click", function(){
+    gateOk.textContent = "";
+    gateErr.textContent = "";
+    solicitar((gateEmail.value || "").trim().toLowerCase(), true);
+  });
+
+  /* Sair descarta os links da memória. Não há sessão persistida: guardar o token
+     seria guardar uma credencial no navegador, e pedir o código de novo é barato
+     para o uso ocasional que esta área tem. */
   document.getElementById("logoutBtn").addEventListener("click", function(){
-    sessionStorage.removeItem(SESSION_KEY);
-    gateUser.value = "";
-    gatePass.value = "";
-    showGate();
-    gateUser.focus();
+    wireCard("cardDeck", ""); wireCard("cardOnePager", "");
+    wireCard("cardProto", ""); wireCard("cardSchedule", "");
+    content.classList.remove("is-visible");
+    gate.style.display = "flex";
+    gateEmail.value = "";
+    irParaEmail();
   });
 })();
 </script>

@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-Rj9El3RSe5uBvIDW6YaRi6gPgQburoYvEeFfR6pPSzg='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self'; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-GFfQTJmlG4flg9QxNYRuwEXBDxW+2RLaKQZIu278tPM='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -249,8 +249,13 @@ body.has-cursor,body.has-cursor *{cursor:none}
 
 .wform__submit{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:1rem;color:#0a0a0a;background:var(--neon);border:none;border-radius:10px;padding:1rem 1.6rem;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
 .wform__submit:hover{transform:translateY(-2px);box-shadow:0 12px 34px -12px rgba(226,255,0,.55)}
+.wform__submit[disabled]{cursor:progress;opacity:.6;transform:none;box-shadow:none}
+.wform__submit[disabled]:hover{transform:none;box-shadow:none}
 .wform__err{font-family:var(--f-body);font-weight:500;font-size:.86rem;color:#ff6b6b;margin:.5rem 0 0}
 .wform__err:empty{display:none;margin:0}
+/* honeypot: fora da tela e fora do fluxo de foco. Gente não vê nem tabula até ele;
+   bot que preenche todo <input> do formulário cai aqui e o envio é descartado no servidor. */
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
 .wform__foot{text-align:center;font-family:var(--f-body);font-size:.8rem;color:var(--faint);margin:0;padding:0 clamp(1.4rem,3vw,2.2rem) clamp(1.4rem,3vw,2.2rem)}
 
 .wform__done{display:none;text-align:center;padding:clamp(2rem,5vh,3rem) clamp(1.4rem,3vw,2.2rem)}
@@ -623,9 +628,11 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
         <label class="wf__check">
           <input type="checkbox" id="wfConsent" name="consentimento" />
-          <span>Autorizo a XOK a tratar meus dados para me manter informado sobre a abertura do mercado e o lançamento da plataforma, conforme a <a href="#" id="wfPolicyLink">Política de Privacidade</a>. Posso revogar a qualquer momento.</span>
+          <span>Autorizo a XOK a tratar meus dados para me manter informado sobre a abertura do mercado e o lançamento da plataforma, conforme a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>. Posso revogar a qualquer momento.</span>
         </label>
 
+
+        <input class="hp" type="text" id="wfWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <button class="wform__submit" id="wformSubmit" type="submit" data-cursor>Entrar na lista</button>
         <p class="wform__err" id="wformErr" role="alert" aria-live="polite"></p>
       </form>
@@ -731,7 +738,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     </div>
     <div class="footer__bottom">
       <p class="footer__copy">&copy; <span id="footerYear"></span> XOK. Desenvolvida pela Hub22.</p>
-      <a href="#" id="footerPolicy" class="footer__policy">Política de Privacidade</a>
+      <a href="/politica-de-privacidade/" class="footer__policy">Política de Privacidade</a>
     </div>
   </div>
 </footer>
@@ -763,7 +770,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
           <input class="wf__input" id="leadSupplierEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@empresa.com" />
         </div>
         <div class="wf">
-          <label class="wf__label" for="leadSupplierWhats">WhatsApp</label>
+          <label class="wf__label" for="leadSupplierWhats">WhatsApp <span class="wf__optional">(opcional)</span></label>
           <input class="wf__input" id="leadSupplierWhats" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
         </div>
       </div>
@@ -806,6 +813,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         <textarea class="wf__input" id="leadSupplierMsg" name="mensagem" rows="4" placeholder="Conte mais sobre a sua proposta"></textarea>
       </div>
 
+
+      <input class="hp" type="text" id="leadSupplierWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button class="wform__submit" id="leadSupplierSubmit" type="submit" data-cursor>Enviar mensagem</button>
       <p class="wform__err" id="leadSupplierErr" role="alert" aria-live="polite"></p>
     </form>
@@ -848,7 +857,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
           <input class="wf__input" id="leadInstitutionalEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@empresa.com" />
         </div>
         <div class="wf">
-          <label class="wf__label" for="leadInstitutionalWhats">WhatsApp</label>
+          <label class="wf__label" for="leadInstitutionalWhats">WhatsApp <span class="wf__optional">(opcional)</span></label>
           <input class="wf__input" id="leadInstitutionalWhats" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
         </div>
       </div>
@@ -893,6 +902,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         <textarea class="wf__input" id="leadInstitutionalMsg" name="mensagem" rows="4" placeholder="Conte mais sobre a sua base"></textarea>
       </div>
 
+
+      <input class="hp" type="text" id="leadInstitutionalWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button class="wform__submit" id="leadInstitutionalSubmit" type="submit" data-cursor>Enviar mensagem</button>
       <p class="wform__err" id="leadInstitutionalErr" role="alert" aria-live="polite"></p>
     </form>
@@ -920,6 +931,64 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   var IS_MOBILE = window.matchMedia("(max-width:860px)").matches; /* mesmo breakpoint do menu móvel (≤860px) */
   var hasGSAP = !!window.gsap;
   var hasScrollTrigger = hasGSAP && !!window.ScrollTrigger;
+
+  /* ---- BACKEND: envio dos três formulários -------------------------------------
+     Endpoint único (Edge Function `submit-lead`, repo xok-backend); o campo "form" diz
+     qual formulário é. Nenhuma chave de API aparece aqui: a função roda com verify_jwt
+     desligado, então não há nada que o navegador pudesse mandar que autenticasse alguém
+     — a anon key do Supabase é pública por definição. Quem protege o endpoint é a
+     allowlist de origem, o honeypot, o rate limit por IP e a revalidação de todo campo,
+     tudo do lado do servidor. O host abaixo precisa estar em connect-src na CSP. ---- */
+  var API_URL = "https://wdeodcypdjjcxjybcvhz.supabase.co/functions/v1/submit-lead";
+  var API_TIMEOUT = 45000; /* folgado de propósito: uma fatura de 10 MB em 4G leva tempo */
+
+  /* Deliberadamente frouxo, do mesmo feitio da validação do servidor: a única checagem
+     que prova que um e-mail existe é mandar mensagem para ele. Vive aqui, e não dentro
+     de um dos formulários, porque os três usam. */
+  function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+
+  /* Resolve sempre com {ok:true} ou {ok:false,erro:"texto para o usuário"} — nunca
+     rejeita, para quem chama não precisar de catch. O AbortController evita o botão
+     ficar preso em "Enviando…" para sempre se a rede engasgar. */
+  function enviarLead(payload, arquivo){
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, API_TIMEOUT);
+    var gerico = "Não foi possível enviar agora. Tente novamente em instantes.";
+
+    /* Sem arquivo vai JSON puro. Com arquivo vira multipart, e os campos seguem num
+       único campo "dados" em JSON — espalhá-los como campos de formulário achataria
+       `vinculos` de lista para string. O Content-Type é omitido de propósito no
+       multipart: quem precisa escrevê-lo é o navegador, que anexa o boundary. */
+    var opcoes = { method:"POST", signal: ctrl ? ctrl.signal : undefined };
+    if(arquivo){
+      var fd = new FormData();
+      fd.append("dados", JSON.stringify(payload));
+      fd.append("fatura", arquivo);
+      opcoes.body = fd;
+    } else {
+      opcoes.headers = { "Content-Type": "application/json" };
+      opcoes.body = JSON.stringify(payload);
+    }
+
+    return fetch(API_URL, opcoes).then(function(res){
+      /* resposta sem corpo JSON (502 da borda, por exemplo) não pode derrubar o fluxo */
+      return res.json().catch(function(){ return null; }).then(function(corpo){
+        if(res.ok && corpo && corpo.ok === true) return { ok:true };
+        return { ok:false, erro:(corpo && corpo.erro) || gerico };
+      });
+    }).catch(function(){
+      return { ok:false, erro:"Sem conexão com o servidor. Verifique sua internet e tente novamente." };
+    }).then(function(r){ clearTimeout(timer); return r; });
+  }
+
+  /* Alterna o botão entre ocioso e "Enviando…", guardando o rótulo original. Impede o
+     duplo clique que geraria dois leads e queimaria o rate limit do visitante. */
+  function estadoEnvio(btn, enviando){
+    if(!btn) return;
+    if(btn.getAttribute("data-rotulo") === null) btn.setAttribute("data-rotulo", btn.textContent);
+    btn.disabled = !!enviando;
+    btn.textContent = enviando ? "Enviando…" : btn.getAttribute("data-rotulo");
+  }
 
   /* trava/libera a rolagem da página -- usada em setupReveal para bloquear o scroll
      enquanto a animação automática do texto1 (neon) está em andamento */
@@ -983,8 +1052,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   }
 
   /* ---- WAITLIST (seção embutida na página, não é overlay) — máscaras, grupos de botão,
-     upload de fatura e envio. Front-end apenas: não há backend conectado ainda, então o "envio"
-     apenas valida os campos e mostra o estado de sucesso. ---- */
+     upload de fatura e envio. A validação daqui é UX: quem decide é a Edge Function, que
+     revalida tudo, inclusive o tipo real do arquivo. ---- */
   (function setupWaitlistForm(){
     var wform     = document.getElementById("wform");
     if(!wform) return;
@@ -999,7 +1068,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var wfFile    = document.getElementById("wfFile");
     var wfDropLink   = document.getElementById("wfDropLink");
     var wfFilename   = document.getElementById("wfFilename");
-    var wfPolicyLink = document.getElementById("wfPolicyLink");
+    var wfDist       = document.getElementById("wfDist");
+    var wfInteresse  = document.getElementById("wfInteresse");
+    var wfWebsite    = document.getElementById("wfWebsite");
+    var wformSubmit  = document.getElementById("wformSubmit");
 
     /* máscara de CEP: 00000-000 */
     if(wfCep) wfCep.addEventListener("input", function(){
@@ -1017,9 +1089,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       wfWhats.value = out;
     });
 
-    /* política de privacidade: ainda não existe uma página dedicada no site */
-    if(wfPolicyLink) wfPolicyLink.addEventListener("click", function(e){ e.preventDefault(); });
-
     /* grupos de opção em botão (seleção única ou múltipla, sem inputs nativos) */
     wform.querySelectorAll(".wf__opts").forEach(function(group){
       var multi = group.getAttribute("data-select") === "multi";
@@ -1035,7 +1104,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       });
     });
 
-    /* upload da fatura (drag & drop + seleção manual) — arquivo fica só em memória, nada é enviado */
+    /* upload da fatura (drag & drop + seleção manual); o arquivo segue no multipart do envio */
     var chosenFile = null;
     function showFile(file){
       chosenFile = file || null;
@@ -1048,11 +1117,22 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         wfFilename.classList.remove("is-visible");
       }
     }
+    /* Triagem de UX apenas: o servidor decide o tipo pelos primeiros bytes do arquivo,
+       porque a extensão do nome é trivial de forjar. Antes, arquivo recusado sumia sem
+       explicação — a pessoa só via o campo continuar vazio. */
     function acceptFile(file){
       if(!file) return;
-      var okType = /\.(jpe?g|png|pdf)$/i.test(file.name);
-      var okSize = file.size <= 10*1024*1024;
-      if(!okType || !okSize) return;
+      if(!/\.(jpe?g|png|pdf)$/i.test(file.name)){
+        if(wformErr) wformErr.textContent = "Envie a fatura em JPG, PNG ou PDF.";
+        shake(wfDrop);
+        return;
+      }
+      if(file.size > 10*1024*1024){
+        if(wformErr) wformErr.textContent = "O arquivo deve ter no máximo 10 MB.";
+        shake(wfDrop);
+        return;
+      }
+      if(wformErr) wformErr.textContent = "";
       showFile(file);
     }
     if(wfDropLink) wfDropLink.addEventListener("click", function(e){ e.stopPropagation(); if(wfFile) wfFile.click(); });
@@ -1066,7 +1146,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     if(wfFile) wfFile.addEventListener("change", function(){ acceptFile(wfFile.files[0]); });
     if(wfFilename) wfFilename.addEventListener("click", function(e){ e.stopPropagation(); showFile(null); if(wfFile) wfFile.value=""; });
 
-    function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
     function shake(el){ if(el && window.gsap && !REDUCE) gsap.fromTo(el,{x:-7},{x:0,duration:0.5,ease:"elastic.out(1,0.35)"}); }
 
     function submitWaitlist(){
@@ -1091,7 +1170,50 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       }
       if(wformErr) wformErr.textContent = "";
 
-      /* front-end apenas: nenhum backend conectado — só simula o envio e mostra o estado de sucesso */
+      /* Os grupos de opção não são inputs nativos: a seleção mora na classe .is-active
+         dos botões, então o valor é lido de volta do DOM na hora do envio. */
+      function opcaoUnica(id){
+        var el = document.querySelector("#" + id + " .wf__opt.is-active");
+        return el ? el.getAttribute("data-value") : null;
+      }
+      function opcoesMultiplas(id){
+        return Array.prototype.map.call(
+          document.querySelectorAll("#" + id + " .wf__opt.is-active"),
+          function(b){ return b.getAttribute("data-value"); }
+        );
+      }
+
+      /* CEP e WhatsApp vão com máscara mesmo; o servidor normaliza para dígitos. */
+      var payload = {
+        form: "waitlist",
+        nome: nome,
+        email: email,
+        cep: (wfCep && wfCep.value) || "",
+        whatsapp: (wfWhats && wfWhats.value) || "",
+        distribuidora: (wfDist && wfDist.value) || "",
+        valor: opcaoUnica("wfValor"),
+        imovel: opcaoUnica("wfImovel"),
+        vinculos: opcoesMultiplas("wfVinculos"),
+        interesse: !!(wfInteresse && wfInteresse.checked),
+        consentimento: !!(wfConsent && wfConsent.checked),
+        website: (wfWebsite && wfWebsite.value) || ""
+      };
+
+      estadoEnvio(wformSubmit, true);
+      enviarLead(payload, chosenFile).then(function(r){
+        estadoEnvio(wformSubmit, false);
+        if(!r.ok){
+          if(wformErr) wformErr.textContent = r.erro;
+          shake(wformSubmit);
+          return;
+        }
+        mostrarSucesso();
+      });
+    }
+
+    /* Animação de sucesso (check morphing). Só roda depois do 200 do servidor — antes
+       ela rodava direto no submit, o que dava um "enviado" que não tinha enviado nada. */
+    function mostrarSucesso(){
       if(!hasGSAP || REDUCE){
         wform.style.display = "none";
         if(wformDone) wformDone.style.display = "block";
@@ -1118,8 +1240,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   })();
 
   /* ---- CORP (seção "empresas"): 2 modais "Vamos conversar" (fornecedores / institucional),
-     abertos pelos botões da seção .corp. Front-end apenas: nenhum backend conectado, então o
-     "envio" só valida os campos e mostra o estado de sucesso, igual às demais views. Os dois
+     abertos pelos botões da seção .corp. Enviam para a mesma Edge Function da lista de espera,
+     discriminados por opts.origem. A validação daqui é UX; o servidor revalida tudo. Os dois
      modais compartilham a mesma estrutura de campos, então usam a mesma factory (setupLeadForm)
      em vez de duplicar a lógica de abrir/fechar/validar para cada um. ---- */
   (function setupCorpLeadForms(){
@@ -1197,6 +1319,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       var tipoOutroWrap    = document.getElementById(opts.tipoOutroWrapId);
       var tipoOutro        = document.getElementById(opts.tipoOutroId);
       var select2          = document.getElementById(opts.select2Id);
+      var msg              = document.getElementById(opts.msgId);
+      var website          = document.getElementById(opts.websiteId);
+      var submitBtn        = document.getElementById(opts.submitId);
       if(!form) return null;
 
       /* máscara de WhatsApp: (00) 00000-0000 (mesma máscara da lista de espera) */
@@ -1223,6 +1348,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         if(tipoOutroWrap) tipoOutroWrap.style.display = "none";
         if(errEl) errEl.textContent = "";
         if(doneEl) doneEl.style.display = "none";
+        estadoEnvio(submitBtn, false);
       }
 
       function open(){ resetForm(); openLead(overlay, backBtn); }
@@ -1250,8 +1376,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
           if(email){ try{ email.focus({preventScroll:true}); }catch(e){} }
           return;
         }
+        /* WhatsApp é opcional (política, seções 3.2 e 3.3); vazio passa, pela metade não */
         var whatsDigits = ((whats && whats.value) || "").replace(/\D/g,"");
-        if(whatsDigits.length < 10){
+        if(whatsDigits.length > 0 && whatsDigits.length < 10){
           if(errEl) errEl.textContent = "Digite um WhatsApp válido.";
           shake(whats && whats.parentElement);
           if(whats){ try{ whats.focus({preventScroll:true}); }catch(e){} }
@@ -1276,8 +1403,31 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
           return;
         }
         if(errEl) errEl.textContent = "";
-        /* front-end apenas: nenhum backend conectado */
-        playCheckSuccess(form, doneEl);
+
+        var payload = {
+          form: opts.origem,
+          nome: ((nome && nome.value) || "").trim(),
+          empresa: ((empresa && empresa.value) || "").trim(),
+          cargo: ((cargo && cargo.value) || "").trim(),
+          email: emailVal,
+          whatsapp: (whats && whats.value) || "",
+          tipo: tipo.value,
+          tipoOutro: (tipoOutro && tipoOutro.value) || "",
+          volume: select2.value,
+          mensagem: (msg && msg.value) || "",
+          website: (website && website.value) || ""
+        };
+
+        estadoEnvio(submitBtn, true);
+        enviarLead(payload).then(function(r){
+          estadoEnvio(submitBtn, false);
+          if(!r.ok){
+            if(errEl) errEl.textContent = r.erro;
+            shake(submitBtn);
+            return;
+          }
+          playCheckSuccess(form, doneEl);
+        });
       }
 
       trigger.addEventListener("click", function(e){ e.preventDefault(); open(); });
@@ -1293,7 +1443,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       nomeId:"leadSupplierNome", empresaId:"leadSupplierEmpresa", emailId:"leadSupplierEmail",
       whatsId:"leadSupplierWhats", cargoId:"leadSupplierCargo",
       tipoId:"leadSupplierTipo", tipoOutroWrapId:"leadSupplierTipoOutroWrap", tipoOutroId:"leadSupplierTipoOutro",
-      select2Id:"leadSupplierVolume", select2ErrMsg:"Selecione o volume/capacidade de energia."
+      select2Id:"leadSupplierVolume", select2ErrMsg:"Selecione o volume/capacidade de energia.",
+      msgId:"leadSupplierMsg", websiteId:"leadSupplierWebsite", submitId:"leadSupplierSubmit",
+      origem:"fornecedor"
     });
 
     var leadInstitutional = setupLeadForm({
@@ -1302,7 +1454,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       nomeId:"leadInstitutionalNome", empresaId:"leadInstitutionalEmpresa", emailId:"leadInstitutionalEmail",
       whatsId:"leadInstitutionalWhats", cargoId:"leadInstitutionalCargo",
       tipoId:"leadInstitutionalTipo", tipoOutroWrapId:"leadInstitutionalTipoOutroWrap", tipoOutroId:"leadInstitutionalTipoOutro",
-      select2Id:"leadInstitutionalBase", select2ErrMsg:"Selecione o número aproximado de pessoas na base."
+      select2Id:"leadInstitutionalBase", select2ErrMsg:"Selecione o número aproximado de pessoas na base.",
+      msgId:"leadInstitutionalMsg", websiteId:"leadInstitutionalWebsite", submitId:"leadInstitutionalSubmit",
+      origem:"institucional"
     });
 
     /* Esc fecha o modal atualmente aberto, igual às demais views */
@@ -1343,9 +1497,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     el.addEventListener("click", function(){ closeMenu(); });
   }
   ["mSolucao","mEmpresas","mRedes","mFaq","mCta"].forEach(wireMenuScrollLink);
-
-  var footerPolicy = document.getElementById("footerPolicy");
-  if(footerPolicy) footerPolicy.addEventListener("click", function(e){ e.preventDefault(); }); /* política de privacidade: ainda não existe uma página dedicada no site (mesmo tratamento do link em .wform) */
 
   var footerYear = document.getElementById("footerYear");
   if(footerYear) footerYear.textContent = new Date().getFullYear(); // mantém o ano do copyright sempre atualizado sem edição manual
