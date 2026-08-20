@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-GFfQTJmlG4flg9QxNYRuwEXBDxW+2RLaKQZIu278tPM='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-ojuNRkSK2Ck+idLQUvQnAcooNk5XCgT7SApnV5EX36s='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -284,6 +284,9 @@ body.has-cursor,body.has-cursor *{cursor:none}
 .social__inner{max-width:1280px;margin:0 auto}
 .social__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;font-size:clamp(2rem,4.2vw,3.2rem);color:var(--ink);text-align:center;max-width:26ch;margin:0 auto clamp(2.5rem,6vh,4rem)}
 .social__title .hl{font-style:normal;color:var(--neon)}
+/* o @xokenergia do título é o link para o perfil: no hover troca o neon pelo cinza padrão do site */
+a.hl{display:inline-block;transition:color .3s var(--ease)}
+a.hl:hover{color:var(--muted)}
 .social__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:clamp(1.2rem,2.4vw,1.8rem)}
 .scard{position:relative;display:block;aspect-ratio:4/5;border-radius:20px;overflow:hidden;background:#111}
 .scard__img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s var(--ease)}
@@ -330,7 +333,7 @@ body.has-cursor,body.has-cursor *{cursor:none}
   position:fixed;inset:0;z-index:8700;background:var(--bg);
   display:grid;grid-template-rows:auto 1fr;gap:clamp(1.5rem,4vh,3rem);
   padding:clamp(1.4rem,3.5vw,2.6rem) var(--gutter) clamp(2rem,5vh,3.5rem);
-  opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;
+  opacity:0;visibility:hidden;pointer-events:none;overflow-y:auto;overscroll-behavior:contain;
 }
 .lead.is-open{visibility:visible;pointer-events:auto}
 .lead__top{display:flex;justify-content:space-between;align-items:center;gap:1rem}
@@ -342,6 +345,10 @@ body.has-cursor,body.has-cursor *{cursor:none}
 .lead__inner{width:100%;max-width:760px;margin:0 auto;align-self:safe center}
 .lead__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.03em;line-height:1.05;font-size:clamp(2rem,5vw,3.2rem);margin:0}
 .lead__sub{font-family:var(--f-body);font-weight:500;color:var(--muted);max-width:52ch;font-size:clamp(1rem,1.4vw,1.12rem);line-height:1.55;margin:clamp(1rem,2.5vh,1.4rem) 0 0}
+/* o subtítulo do institucional é mais longo que o de fornecedores: preso em 52ch ele quebra em 3 linhas
+   e sobra altura suficiente para o modal ganhar barra de rolagem própria. Soltando a medida (o limite
+   passa a ser o .lead__inner, 760px) ele fecha em 2 linhas e o modal fica da mesma altura do outro. */
+#leadInstitutional .lead__sub{max-width:none}
 .lead__form{margin:clamp(1.6rem,4vh,2.6rem) 0 0}
 .lead__form>*+*{margin-top:clamp(1.1rem,2.4vw,1.6rem)}
 .wf__optional{text-transform:none;letter-spacing:0;font-weight:500;color:var(--faint)} /* suaviza o sufixo "(opcional)" dentro de .wf__label, que por padrão é maiúsculo/espaçado */
@@ -671,7 +678,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 <section class="social" id="social">
   <div class="social__inner">
-    <h2 class="social__title">Acompanhe nossas redes sociais em <em class="hl">@xokenergia</em></h2>
+    <h2 class="social__title">Acompanhe nossas redes sociais em <a class="hl" href="https://www.instagram.com/xokenergia/" target="_blank" rel="noopener noreferrer" data-cursor>@xokenergia</a></h2>
     <div class="social__cards">
       <a class="scard" href="https://www.instagram.com/p/DbUTSXikbzI/?img_index=1" target="_blank" rel="noopener noreferrer" data-cursor aria-label="Ver post no Instagram">
         <img class="scard__img" src="assets/post1.png" alt="Post da XOK no Instagram" loading="lazy" />
@@ -1245,10 +1252,42 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      modais compartilham a mesma estrutura de campos, então usam a mesma factory (setupLeadForm)
      em vez de duplicar a lógica de abrir/fechar/validar para cada um. ---- */
   (function setupCorpLeadForms(){
+    /* Impede que o scroll feito sobre o modal chegue na página de trás — sem isso, ao fechar,
+       o site aparecia em outra posição. Nada de overflow:hidden no <html>/<body> aqui: o <body>
+       tem overflow-x:hidden e height:100%, então travar o <html> tira a propagação de overflow
+       do <body>, o documento deixa de ser o scroller e a página salta para o topo. Estes guards
+       só cancelam o evento; a posição do site atrás fica exatamente onde o usuário estava.
+       O overscroll-behavior:contain do .lead cobre o caso em que o modal rola até o fim. */
+    var SCROLL_KEYS = { PageUp:1, PageDown:1, ArrowUp:1, ArrowDown:1, Home:1, End:1, " ":1 };
+    function overlayRolaEm(overlay, dy){
+      var max = overlay.scrollHeight - overlay.clientHeight;
+      if(max <= 1) return false;                      /* modal cabe na tela: nada a rolar */
+      if(dy < 0) return overlay.scrollTop > 0;
+      if(dy > 0) return overlay.scrollTop < max - 1;
+      return false;
+    }
+    function containScroll(overlay){
+      overlay.addEventListener("wheel", function(e){
+        if(!overlayRolaEm(overlay, e.deltaY)) e.preventDefault();
+      }, { passive:false });
+      overlay.addEventListener("touchmove", function(e){
+        if(overlay.scrollHeight - overlay.clientHeight <= 1) e.preventDefault();
+      }, { passive:false });
+      overlay.addEventListener("keydown", function(e){
+        if(!SCROLL_KEYS[e.key]) return;
+        var t = e.target, tag = t && t.tagName;
+        if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+        if(tag === "BUTTON" && e.key === " ") return; /* espaço aciona o botão, não rola */
+        var dy = (e.key === "ArrowUp" || e.key === "PageUp" || e.key === "Home") ? -1 : 1;
+        if(!overlayRolaEm(overlay, dy)) e.preventDefault();
+      });
+    }
+
     /* abre um overlay .lead com fade+slide dos itens marcados com [data-lreveal] */
     function openLead(overlay, backBtn){
       overlay.classList.add("is-open");
       overlay.setAttribute("aria-hidden","false");
+      overlay.scrollTop = 0; /* o modal abre no topo; a rolagem do site atrás não é tocada */
       var items = overlay.querySelectorAll("[data-lreveal]");
       if(!hasGSAP || REDUCE){
         overlay.style.opacity = "1";
@@ -1306,6 +1345,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       var overlay       = document.getElementById(opts.id);
       var trigger        = document.getElementById(opts.triggerId);
       if(!overlay || !trigger) return null;
+      containScroll(overlay); /* o scroll do modal não vaza para o site atrás */
       var backBtn         = document.getElementById(opts.backId);
       var form             = document.getElementById(opts.formId);
       var errEl            = document.getElementById(opts.errId);
