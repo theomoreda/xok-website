@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-5isnKikJrM1GfLO3FRQW1mX3vfzIIdMPjrnmnRfQo98='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-hYKFXUzyg6357Cy2u3G/xm5wl8/5NChvTOwEF0EYZHE='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -210,7 +210,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
    direita). Sem JS/ScrollTrigger, com motion reduzido ou em tela de celular, os quatro blocos
    empilham em coluna normal, todos legíveis. */
 .steps-wrap{position:relative}
-.steps{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:clamp(2rem,4vh,3rem);padding:clamp(5rem,13vh,7.5rem) var(--gutter) clamp(2rem,5vh,3.5rem)}
+.steps{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:clamp(3.5rem,7vh,5.25rem);padding:clamp(2.5rem,6.5vh,4rem) var(--gutter) clamp(2rem,5vh,3.5rem)}
 .steps__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.01em;line-height:1.25;font-size:var(--fs-statement);color:var(--ink);text-align:center;max-width:18.2em;margin:0 auto} /* medida em "em", igual à do reveal: com a fonte acompanhando a viewport, um max-width em px viraria 3 linhas nas telas grandes */
 /* --stepx-size herda os clamps do antigo --card-size, e as três fontes continuam sendo múltiplos
    dele — só que 1.75x os múltiplos que os cards usavam (.045/.076/.058 -> .08/.133/.1, arredondados).
@@ -218,7 +218,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
    O único acréscimo é o teto de 36vh dentro do min(): a seção é sticky, então o que não couber na
    altura da viewport fica cortado. Em telas largas e baixas (notebook de 13"), é a altura, não a
    largura, que manda no tamanho. */
-.steps__stack{--stepx-size:clamp(190px,min(14.5vw,36vh),272px);display:grid;row-gap:clamp(2.5rem,7vh,4.5rem);width:min(100%,1280px);margin:0 auto} /* sem JS: as 4 etapas empilham em coluna, todas legíveis */
+.steps__stack{--stepx-size:clamp(190px,min(14.5vw,36vh),272px);display:grid;row-gap:clamp(4.25rem,11vh,7rem);width:min(100%,1280px);margin:0 auto} /* sem JS: as 4 etapas empilham em coluna, todas legíveis */
 .steps__stack.is-enhanced{flex:1;align-content:center;row-gap:0} /* com JS: as 4 dividem a MESMA célula do grid — só uma aparece por vez */
 .steps__stack.is-enhanced > .stepx{grid-column:1;grid-row:1;opacity:0} /* opacity:0 evita flash antes de o scrub assumir */
 @media(max-width:600px){
@@ -504,8 +504,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
    O XOK gigante e a tagline "DÊ O SEU MATCH DE ENERGIA" saem: numa tela de celular eles gastavam
    metade da altura e empurravam a declaração para baixo; a marca continua no header.
    As frases 2 e 3 também saem — o que elas explicam é retomado nos 4 passos e no FAQ.
-   Com o fundo neon toda a tinta inverte: a tipografia é preta (o painel é a cor), e o acento da
-   declaração deixa de ser neon (--hero-accent, lido pelo JS em setupHeroMobile) e passa a ser o
+   Com o fundo neon a tinta do painel inverte: a tipografia é preta (o painel é a cor), e o acento
+   da declaração deixa de ser neon (--hero-accent, lido pelo JS em setupHeroMobile) e passa a ser o
    preto cheio contra o preto rebaixado do resto da frase.
    O ícone de "role o mouse" continua escondido (não faz sentido em touch) e a tagline volta a
    quebrar linha — alguns aparelhos híbridos (touch + trackpad) reportam (hover:hover) e caíam no
@@ -522,12 +522,15 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      junto dos links e do CTA; ver playMark.) */
   .nav__logo{animation:navToggleIn .6s var(--ease) .35s both}
 
-  /* enquanto o header está POR CIMA do painel neon ele ainda não é .scrolled (setupNavGlass só
-     liga o vidro no fim do painel, justamente para a barra preta não cruzar o amarelo) — e nesse
-     trecho a tinta do header inverte: branco sobre neon não se lê. */
-  .nav:not(.scrolled) .nav__logo{color:var(--bg)}
-  .nav:not(.scrolled) .nav__toggle{border-color:rgba(10,10,10,.3)}
-  .nav:not(.scrolled) .nav__toggle span{background:var(--bg)}
+  /* sobre o painel neon a tinta do header também inverte: XOK e botão de menu em preto (o painel
+     É a cor). Assim que a página rola e o header ganha o fundo preto (.scrolled), a tinta volta
+     ao branco -- preto sobre preto sumiria. A transição acompanha a do fundo (.4s). */
+  .nav__logo{color:#0a0a0a;transition:color .4s}
+  .nav__toggle{border-color:rgba(10,10,10,.28);transition:border-color .4s,background .3s}
+  .nav__toggle span{background:#0a0a0a;transition:transform .35s var(--ease),opacity .2s,background .4s}
+  .nav.scrolled .nav__logo{color:var(--ink)}
+  .nav.scrolled .nav__toggle{border-color:var(--line-strong)}
+  .nav.scrolled .nav__toggle span{background:var(--ink)}
 
   /* PAINEL NEON, uma tela cheia, em duas faixas: os textos ocupam a sobra de cima (1fr, e o
      align-items:center herdado do desktop os centraliza DENTRO dessa faixa) e o raio fica preso
@@ -541,12 +544,15 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
           row-gap:clamp(1.25rem,4vh,2rem);
           padding:clamp(5.5rem,14vh,7rem) var(--gutter) 0 var(--hero-pad-l)}
   .bigmark{display:none} /* XOK gigante + tagline: fora do celular ela continua sendo a 1ª camada do pin */
-  .reveal__stack{row-gap:clamp(.9rem,2.8vh,1.5rem)}
+  .reveal__stack{row-gap:clamp(1.5rem,4.5vh,2.4rem)}
   #revealText2,#revealText3{display:none}
 
   /* bandeira à esquerda: sem centro e sem margin-inline:auto, os dois blocos alinham pela mesma
-     vertical e a medida passa a ser dada pelas goteiras (assimétricas) do painel */
-  .reveal__text{text-align:left;margin-inline:0;max-width:none}
+     vertical e a medida passa a ser dada pelas goteiras (assimétricas) do painel.
+     margin:0 também zera a margem PADRÃO de <p> (1em em cada ponta, ~109px somados nesta escala):
+     no desktop ela some no meio do pin centralizado, mas aqui empurrava o raio para fora da tela
+     num aparelho baixo. Quem dá a respiração entre os dois blocos é o row-gap do .reveal__stack. */
+  .reveal__text{text-align:left;margin:0;max-width:none}
 
   /* DECLARAÇÃO (frase 1). O tamanho é limitado também pela ALTURA (4.6vh dentro do min): numa tela
      estreita e baixa é a altura que manda, senão a frase empurra o raio para fora do painel.
@@ -559,19 +565,74 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
                font-family:var(--f-body);font-weight:500;letter-spacing:0;
                font-size:clamp(1.02rem,4.4vw,1.3rem);line-height:1.5;max-width:32ch}
 
-  /* RAIO: encosta na borda direita da tela e se estica o máximo que o painel permite.
-     Margem negativa em vez de width:100vw — 100vw ignora a barra de rolagem e, num aparelho que
-     desenhe barra ocupando espaço, criaria rolagem lateral na página inteira. */
-  .hero-bolt{display:block;align-self:end;
-             margin:0 calc(var(--gutter) * -1) 0 calc(var(--hero-pad-l) * -1)}
-  .hero-bolt img{display:block;width:100%;height:auto}
+  /* RAIO: a caixa sangra de borda a borda (margem negativa em vez de width:100vw — 100vw ignora a
+     barra de rolagem e, num aparelho que desenhe barra ocupando espaço, criaria rolagem lateral na
+     página inteira) e a imagem é --bolt-scale vezes MAIOR que ela.
+     margin-left:auto encosta a imagem na direita e joga a sobra toda para a esquerda; o
+     overflow:hidden da caixa corta essa sobra. Ou seja: cresce sem sair pela direita e sem
+     empurrar a largura da página — o que fica de fora é a ponta esquerda do raio, de propósito. */
+  .hero-bolt{--bolt-scale:1.55;--bolt-max-h:32svh;--bolt-ratio:2.245; /* ratio = 4851/2161, o viewBox do SVG */
+             /* deslocamento fino: sobe tirando o raio do rodapé exato e anda um pouco para a
+                direita, deixando a ponta passar da borda (o overflow da caixa corta o que sai) */
+             --bolt-shift-x:4%;--bolt-shift-y:clamp(.9rem,3.2svh,2.2rem);
+             display:block;align-self:end;overflow:hidden;
+             margin:0 calc(var(--gutter) * -1) var(--bolt-shift-y) calc(var(--hero-pad-l) * -1)}
+  /* --bolt-w é a MENOR entre "--bolt-scale vezes a caixa" e "a largura que dá --bolt-max-h de
+     altura" — com height:auto a proporção se mantém sozinha nos dois casos. Sem esse teto, num
+     aparelho baixo (360x640) o raio ficava alto demais e a parte de baixo caía fora da tela.
+     O margin-left é o que encosta a DIREITA da imagem na direita da caixa: 100% e a largura têm a
+     mesma base (a caixa), então a conta dá exatamente a sobra — negativa quando a imagem é maior,
+     puxando-a para a esquerda até as bordas direitas coincidirem, e positiva quando é menor.
+     margin-left:auto NÃO serve aqui: com largura maior que a caixa não há espaço livre, o auto
+     resolve para 0 e a imagem vaza justamente pela direita, que é a borda que precisa ficar presa. */
+  .hero-bolt img{--bolt-w:min(calc(100% * var(--bolt-scale)), calc(var(--bolt-max-h) * var(--bolt-ratio)));
+                 display:block;height:auto;max-width:none;opacity:0; /* a entrada é de setupHeroMobile */
+                 width:var(--bolt-w);margin-left:calc(100% - var(--bolt-w) + var(--bolt-shift-x))}
 
-  /* máscara de linha (montada por splitLines, em setupHeroMobile): a linha sobe por baixo de uma
-     janela que a recorta. O padding estende só a área de RECORTE — a margem negativa devolve o
-     espaço, então a entrelinha continua sendo a do line-height. Sem ele os acentos das maiúsculas
-     e as descidas de "g/q" ficariam cortados. */
-  .reveal__text .hline{display:block;overflow:hidden;padding:.1em 0 .14em;margin:-.1em 0 -.14em}
-  .reveal__text .hline__in{display:block;will-change:transform}
+  /* PULSO DO RAIO (só no celular; quem dirige é iniciarPulso, em setupHeroMobile).
+     Uma onda percorre as bolinhas da direita para a esquerda acendendo-as em branco e, logo atrás,
+     uma segunda onda — no mesmo sentido — devolve a cor original.
+     NÃO são as 2133 elipses do SVG animadas uma a uma: isso pediria o arquivo embutido no HTML
+     (+160KB para todo mundo, inclusive o desktop, que nem mostra o raio) e 2133 escritas de estilo
+     por quadro. São duas cópias sobrepostas da MESMA imagem — a preta e uma branca (invert(1)) —
+     recortadas por máscaras COMPLEMENTARES: --wa é a frente que acende, --wb a que apaga, ambas em
+     % da largura da IMAGEM (que é maior que a caixa: a ponta esquerda está cortada, ver acima).
+     Entre as duas frentes a branca aparece e a preta some.
+     Complementares, e não simplesmente "a branca por cima": duas cópias opacas empilhadas somam a
+     borda suavizada de cada bolinha duas vezes e o ponto ganha um halo cinza. Assim, em cada x, no
+     máximo uma das duas está pintando cheio.
+     --wf é a largura da frente. As colunas de bolinhas distam 1,18% da largura (85 colunas), então
+     ~2,8% cobre umas duas colunas: cada bolinha troca de cor INTEIRA, em sequência, em vez de a
+     frente cortar bolinhas ao meio. Em repouso as duas frentes ficam em 104% — fora da imagem,
+     com a rampa toda para lá do 100% — e o raio fica exatamente como era: preto, sem nada aceso. */
+  .hero-bolt{position:relative;--wa:104;--wb:104;--wf:2.8%}
+  /* a cópia branca só existe se der para recortá-la: sem suporte a máscara ela apareceria inteira,
+     por cima, e o raio ficaria branco para sempre. Sem ela o raio simplesmente não pulsa. */
+  .hero-bolt__glow{display:none}
+  @supports (mask-image:linear-gradient(#000,#000)) or (-webkit-mask-image:linear-gradient(#000,#000)){
+  .hero-bolt__glow{display:block}
+  }
+  .hero-bolt__glow{position:absolute;top:0;left:0;filter:invert(1);
+    -webkit-mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)));
+            mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)))}
+  .hero-bolt__ink{
+    -webkit-mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)));
+            mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)))}
+
+  /* máscara de linha (montada por splitLines, usada pelo setupHeroMobile e pelo setupStepsMobile):
+     a linha sobe por baixo de uma janela que a recorta. O padding estende só a área de RECORTE — a
+     margem negativa devolve o espaço, então a entrelinha continua sendo a do line-height. Sem ele
+     os acentos das maiúsculas e as descidas de "g/q" ficariam cortados.
+     A mesma janela serve aos dois usos: no herói quem sobe por baixo dela é a linha inteira, no
+     título dos 4 passos são as letras, uma a uma. */
+  .reveal__text .hline,.steps__title .hline{display:block;overflow:hidden;padding:.1em 0 .14em;margin:-.1em 0 -.14em}
+  .reveal__text .hline__in,.steps__title .hline__in{display:block;will-change:transform}
+  /* letra a letra no título dos 4 passos (só no celular; os spans só existem depois do
+     setupStepsMobile rodar, então sem JS estas regras não pegam nada).
+     nowrap na palavra: com as letras em inline-block o navegador passaria a poder quebrar linha
+     DENTRO da palavra — as linhas já foram fixadas pelo splitLines e a quebra não deve mudar. */
+  .steps__title .word{display:inline-block;white-space:nowrap}
+  .steps__title .char{display:inline-block;will-change:transform}
 }
 
 /* ===== Viewports muito baixos (paisagem / janelas curtas): evita corte do herói ===== */
@@ -586,10 +647,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 @media(max-width:860px) and (max-height:560px){
   .reveal{row-gap:clamp(.9rem,3.5vh,1.6rem);padding-block:clamp(1.5rem,6vh,2.5rem) 0}
   #revealText4{display:none}
-  /* deitado, largura total daria ao raio quase metade da altura da tela: ele recua para menos de
-     meia largura, mas continua colado na borda direita (margin-left:auto empurra, a margem
-     negativa da direita permanece). */
-  .hero-bolt{width:min(52%,380px);margin-left:auto}
+  /* deitado a altura é todo o orçamento: em vez de crescer, o raio encolhe para meia largura
+     (abaixo de 1, portanto sem corte) — e o teto de altura sobe, senão ele seria cortado duas
+     vezes. O margin-left fica positivo e continua encostando a imagem na direita. */
+  .hero-bolt{--bolt-scale:.5;--bolt-max-h:46svh}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -651,9 +712,12 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     <!-- RAIO — só aparece no celular (display:none por padrão, ver .hero-bolt no bloco ≤860px):
          fecha o painel neon ocupando a sobra embaixo dos dois textos. Decorativo, sem conteúdo
          para leitor de tela. width/height são os do viewBox: reservam a proporção antes do SVG
-         carregar, então o painel não pula quando ele chega. -->
+         carregar, então o painel não pula quando ele chega.
+         São DUAS cópias do mesmo arquivo (mesma URL: o navegador baixa uma vez) — a preta original
+         e uma branca — sobrepostas para o pulso de luz; ver ".hero-bolt" no bloco ≤860px. -->
     <div class="hero-bolt" aria-hidden="true">
-      <img src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
+      <img class="hero-bolt__glow" src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
+      <img class="hero-bolt__ink" src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
     </div>
     <div class="scrolldown" id="scrollDown" aria-hidden="true">
       <span class="scrolldown__mouse"><span class="scrolldown__dot"></span></span>
@@ -918,6 +982,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         <a href="#social">Redes</a>
         <a href="#faq">FAQ</a>
         <a href="https://www.instagram.com/xokenergia" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://www.linkedin.com/company/xok" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </nav>
     </div>
     <div class="footer__bottom">
@@ -1208,21 +1273,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
        comportamento simples de sempre (vidro assim que sair do topo). No celular a hero tem
        exatamente uma tela, então a conta do pin daria limiar ~0 e o vidro entraria já no topo. */
     if(!hasScrollTrigger || REDUCE || IS_MOBILE){
-      /* No celular o herói é um painel NEON de uma tela: o limiar de sempre (scrollY>4) faria a
-         barra preta aparecer por cima do amarelo já no primeiro pixel de rolagem. Aqui o vidro
-         entra quando o painel termina de sair — o mesmo instante em que a tinta invertida do
-         header (bloco ≤860px, .nav:not(.scrolled)) deixa de ser necessária.
-         Fora do celular (sem ScrollTrigger / motion reduzido) fica o comportamento simples. */
-      var wrapMob = IS_MOBILE ? document.getElementById("revealWrap") : null;
-      var limiar = 4;
-      var medir = function(){
-        limiar = wrapMob ? Math.max(4, wrapMob.offsetHeight - navEl.offsetHeight) : 4;
-      };
-      var simple = function(){ navEl.classList.toggle("scrolled", window.scrollY > limiar); };
-      medir();
+      var simple = function(){ navEl.classList.toggle("scrolled", window.scrollY > 4); };
       simple();
       window.addEventListener("scroll", simple, {passive:true});
-      window.addEventListener("resize", function(){ medir(); simple(); }, {passive:true});
       return;
     }
 
@@ -1914,6 +1967,12 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var hidden = [document.getElementById("revealText2"), document.getElementById("revealText3")].filter(Boolean);
     if(!el1 || !el2) return;
 
+    /* raio: duas cópias sobrepostas (preta + branca), ver ".hero-bolt" no CSS do bloco ≤860px.
+       As duas entram juntas, com a mesma animação — é uma imagem só aos olhos. */
+    var boltBox = document.querySelector(".hero-bolt");
+    var boltInk = boltBox ? boltBox.querySelector(".hero-bolt__ink") : null;
+    var bolts   = boltBox ? Array.prototype.slice.call(boltBox.querySelectorAll("img")) : [];
+
     var words = wrapWords(el1);
     if(!words.length) return;
 
@@ -1939,23 +1998,77 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     if(!hasGSAP || REDUCE){
       el1.style.opacity = "1";
       el2.style.opacity = "1";
+      bolts.forEach(function(b){ b.style.opacity = "1"; });
       accent.forEach(function(w){ w.style.color = accentColor; });
       return;
     }
 
     var lines = splitLines(el1);
-    if(!lines.length){ el1.style.opacity = "1"; el2.style.opacity = "1"; return; }
+    if(!lines.length){
+      el1.style.opacity = "1"; el2.style.opacity = "1";
+      bolts.forEach(function(b){ b.style.opacity = "1"; });
+      return;
+    }
 
     gsap.set(el1,{opacity:1});          /* a partir daqui quem esconde o texto é a máscara */
     gsap.set(lines,{yPercent:118});     /* 118 e não 100: a área de recorte da .hline é maior que a linha */
     gsap.set(el2,{opacity:0,y:18});
+    /* o raio entra deslizando no seu próprio eixo (sobe para a direita), não na vertical dos textos:
+       o x negativo é o que se vê, porque a esquerda dele já está cortada pela caixa. */
+    if(bolts.length) gsap.set(bolts,{opacity:0,x:-34,y:14});
 
     /* 1,9s: o traço do XOK ainda está terminando de preencher (playMark) e a tagline acabou de
        pousar — a declaração entra por cima dessa cauda, em vez de esperar a intro acabar */
-    gsap.timeline({delay:1.9})
+    var tlHero = gsap.timeline({delay:1.9});
+    tlHero
       .to(lines,{yPercent:0,duration:1.0,ease:"expo.out",stagger:0.085})
       .to(accent,{color:accentColor,duration:0.45,ease:"none",stagger:0.045},"-=0.42")
       .to(el2,{opacity:1,y:0,duration:0.9,ease:"power3.out"},"-=0.72");
+
+    /* o raio fecha a sequência: entra 0,1s DEPOIS do apoio pousar (sem sobreposição, ao contrário
+       dos passos anteriores, que se cavalgam), então a leitura é sempre declaração -> apoio -> raio.
+       Anexado fora do encadeamento acima para que a ausência do elemento não mexa no timing dos textos. */
+    if(bolts.length) tlHero.to(bolts,{opacity:1,x:0,y:0,duration:1.1,ease:"power3.out"},"+=0.1");
+
+    /* PULSO — a onda de luz que percorre o raio em ciclos; a mecânica das máscaras está no CSS
+       (".hero-bolt"), aqui fica só o movimento das duas frentes.
+       Um tween só, de 0 a 1, com as duas frentes lidas desse mesmo progresso: a que ACENDE ocupa
+       0 -> 0,58 e a que APAGA 0,45 -> 1. O recobrimento é o pedido: a volta começa quando a ida já
+       andou 78% do caminho, com a maior parte das bolinhas branca. Ler as duas de um progresso
+       comum (em vez de dois tweens) é o que deixa os limites serem RE-MEDIDOS a cada ciclo sem
+       reconstruir nada — a imagem é maior que a caixa e girar o aparelho muda o quanto sobra
+       cortado à esquerda, e a onda tem de percorrer o trecho VISÍVEL, não o arquivo inteiro.
+       As sobras de 6% nas duas pontas põem a rampa da frente fora da área visível, senão o ciclo
+       começaria e terminaria com uma listra meio acesa na borda. */
+    if(!boltBox || !boltInk) return;
+    var lim = {ini:104, fim:-6};
+    function medirPulso(){
+      var cx = boltBox.getBoundingClientRect(), im = boltInk.getBoundingClientRect();
+      if(!im.width) return;
+      lim.ini = Math.min(104, (cx.right - im.left) / im.width * 100 + 6);
+      lim.fim = Math.max(0, (cx.left - im.left) / im.width * 100) - 6;
+    }
+    function frente(p){ /* p de 0 a 1 no trecho da frente -> posição em % da largura da imagem */
+      p = p < 0 ? 0 : (p > 1 ? 1 : p);
+      return lim.ini + (lim.fim - lim.ini) * p;
+    }
+    function iniciarPulso(){
+      medirPulso();
+      var t = {p:0};
+      var tl = gsap.timeline({repeat:-1, repeatDelay:2.6, onRepeat:medirPulso});
+      tl.to(t,{p:1,duration:2.6,ease:"none",onUpdate:function(){
+        boltBox.style.setProperty("--wa", frente(t.p / 0.58));
+        boltBox.style.setProperty("--wb", frente((t.p - 0.45) / 0.55));
+      }});
+      /* fora da tela o ciclo não roda: a hero fica no topo e o resto da página é longo — sem isto
+         o timeline seguiria repintando a máscara a página inteira abaixo, de graça. */
+      if("IntersectionObserver" in window){
+        new IntersectionObserver(function(es){
+          if(es[0].isIntersecting){ tl.play(); } else { tl.pause(); }
+        }).observe(boltBox);
+      }
+    }
+    tlHero.call(iniciarPulso, null, "+=1.3");
   }
 
   /* INTRO/REVEAL — o herói (XOK+tagline) e todos os textos vivem no mesmo pin (".reveal", sticky no topo).
@@ -2070,7 +2183,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var blocks = Array.prototype.slice.call(stack.querySelectorAll(".stepx"));
     if(!blocks.length) return;
 
-    if(!hasScrollTrigger || REDUCE || IS_MOBILE) return;
+    /* no celular a seção é outra: não há pin nem passagem de uma etapa por vez — as quatro ficam
+       em coluna e cada uma entra pelo seu lado quando aparece (ver setupStepsMobile). */
+    if(IS_MOBILE){ setupStepsMobile(section, blocks); return; }
+    if(!hasScrollTrigger || REDUCE) return;
 
     gsap.registerPlugin(ScrollTrigger);
     stack.classList.add("is-enhanced"); /* sobrepõe os 4 blocos na mesma célula do grid */
@@ -2143,6 +2259,67 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
        sobre a rolagem do trigger, então sem esta cauda a entrada da etapa 4 terminaria exatamente
        no despin e ela sairia da tela ainda se montando. */
     tl.to({}, { duration: tailHold }, starts[last] + enterDur);
+  }
+
+  /* 4 PASSOS NO CELULAR — não há pin nem passagem de uma etapa por vez: as quatro ficam na coluna
+     normal do CSS e cada uma anima UMA única vez, quando aparece pela primeira vez.
+     Título: a mesma máscara de linha do herói (splitLines), só que quem sobe por baixo dela são as
+     LETRAS, escalonadas — a frase se escreve da esquerda para a direita em vez de subir inteira.
+     Por isso o splitLines roda ANTES de picar as palavras: as linhas são medidas com as palavras
+     ainda inteiras, e depois disso a quebra não muda mais.
+     Etapas: cada bloco chega deslizando do seu lado (1 e 3 da esquerda, 2 e 4 da direita — a mesma
+     alternância do desktop), começando fora da tela. O deslocamento é xPercent, medido na largura
+     do PRÓPRIO bloco: vale em qualquer aparelho sem depender de vw, e como o bloco ocupa a largura
+     da coluna, 112% o põe inteiro para fora. Quem corta a sobra é o overflow-x:hidden do <body>:
+     nenhum dos dois lados cria rolagem lateral.
+     Sem ScrollTrigger ou com motion reduzido nada disso roda e o CSS já deixa tudo legível. */
+  function setupStepsMobile(section, blocks){
+    if(!hasScrollTrigger || REDUCE) return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    var titulo = section.querySelector(".steps__title");
+    var letras = [];
+    if(titulo){
+      Array.prototype.forEach.call(wrapWords(titulo), function(palavra){
+        var txt = palavra.textContent;
+        palavra.textContent = ""; /* as letras entram no lugar do texto da palavra */
+        for(var i=0;i<txt.length;i++){
+          var c = document.createElement("span");
+          c.className = "char";
+          c.textContent = txt.charAt(i);
+          palavra.appendChild(c);
+          letras.push(c);
+        }
+      });
+    }
+    /* as letras são picadas ANTES de medir as linhas: cada uma vira uma caixa inline-block e o
+       kerning entre elas se perde, então a frase fica alguns pixels mais larga do que era como
+       texto corrido — medir antes agruparia palavras que, já picadas, não cabem mais na linha
+       (a primeira linha do título passa a 1px de estourar a coluna). Medindo depois, a quebra que
+       o splitLines fixa é exatamente a que o navegador desenharia. */
+    var linhas = letras.length ? splitLines(titulo) : [];
+    if(linhas.length){
+      gsap.set(letras,{yPercent:120}); /* 120 e não 100: a área de recorte da .hline é maior que a linha */
+      ScrollTrigger.create({
+        trigger: titulo, start:"top 82%", once:true,
+        onEnter:function(){
+          /* stagger curto: com ~70 letras, 0,016s dá pouco menos de 1,2s de varredura — a última
+             letra ainda entra enquanto as primeiras acabam de assentar, e a frase lê como uma só. */
+          gsap.to(letras,{yPercent:0,duration:0.9,ease:"expo.out",stagger:0.016});
+        }
+      });
+    }
+
+    blocks.forEach(function(block, i){
+      var lado = (i % 2 === 0) ? -1 : 1;           /* -1 = esquerda (etapas 1 e 3), +1 = direita (2 e 4) */
+      gsap.set(block,{xPercent:lado*112,opacity:0});
+      ScrollTrigger.create({
+        trigger: block, start:"top 86%", once:true,
+        onEnter:function(){
+          gsap.to(block,{xPercent:0,opacity:1,duration:1.1,ease:"power3.out"});
+        }
+      });
+    });
   }
 
   /* PRISMA (texto 4 -> título dos 4 passos) — a última frase do reveal ("Nós encontramos, entre as
