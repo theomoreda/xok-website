@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-OEp8UllVNDsx7h52+Y20IzppPJTewzr2ES81T0GJSQI='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-deB0U8wk8DcVJT+i/V19KI6ZqzJcrWYv2t3oVcGEQIc='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -60,7 +60,6 @@ a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 ::selection{background:var(--neon);color:#000}
 :focus-visible{outline:2px solid var(--neon);outline-offset:3px;border-radius:2px}
-body.has-cursor,body.has-cursor *{cursor:none}
 
 /* grain */
 .grain{
@@ -73,12 +72,6 @@ body.has-cursor,body.has-cursor *{cursor:none}
   30%{transform:translate(4%,-6%)}40%{transform:translate(-2%,8%)}50%{transform:translate(-6%,4%)}
   60%{transform:translate(6%,0)}70%{transform:translate(-4%,6%)}80%{transform:translate(2%,-8%)}
   90%{transform:translate(-6%,-2%)}100%{transform:translate(0,0)}
-}
-
-/* cursor (dot only) */
-.cursor__dot{
-  position:fixed;top:-4px;left:-4px;width:8px;height:8px;border-radius:50%;
-  background:#fff;mix-blend-mode:difference;z-index:9600;pointer-events:none;
 }
 
 /* NAV (restored from the previous multi-section version) */
@@ -171,33 +164,79 @@ body.has-cursor,body.has-cursor *{cursor:none}
   100%{transform:translate(-50%,0);opacity:1}
 }
 
+/* PRISMA (texto 4 -> título dos 4 passos) — as duas frases são as faces EXTERNAS de um bloco
+   retangular que rola para trás: a face da frente (texto A) sobe tombando e vira a face de cima,
+   que não se vê, enquanto a face que estava de bruços no chão (texto B) sobe até a vertical e toma
+   o lugar da frente. O eixo é a aresta inferior TRASEIRA do bloco, uma profundidade atrás do plano
+   da tela: girar em torno da aresta de baixo da própria face A deitaria o texto A voltado para
+   cima, virando o chão da caixa — lido como face interna, que é o que não se quer.
+   A profundidade do bloco é a altura da face B, que é a que vira a nova frente; a face A ganha um
+   translateZ dessa profundidade para continuar pousada no plano da tela no instante inicial.
+   Não existe bloco nenhum: são dois parágrafos no mesmo espaço 3D (perspective no palco +
+   preserve-3d no bloco), girando em torno do mesmo eixo horizontal.
+   O palco é fixed porque a rolagem atravessa a costura entre dois pins (ver setupPrismRoll). */
+.roll{position:fixed;inset:0;z-index:40;display:none;pointer-events:none;perspective:1200px}
+.roll.is-on{display:block}
+.roll__block{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;will-change:transform} /* caixa de tamanho zero: o ponto dela É a aresta traseira de baixo, o eixo do rolamento */
+/* seletor com 2 classes de propósito: as faces herdam .reveal__text / .steps__title (mesma tipografia
+   dos originais) e precisam vencer o opacity:0 de um e o margin:0 auto do outro */
+.roll .roll__face{position:absolute;left:0;bottom:0;margin:0;max-width:none;opacity:1;transform-origin:50% 100%;backface-visibility:hidden;isolation:isolate}
+/* placa opaca da cor do fundo atrás de cada face: é ela que faz o bloco parecer sólido — sem isso as
+   duas faces se atravessam no meio do giro (a de trás aparece através da da frente) em vez de uma
+   ocultar a outra. Fica num ::before com inset negativo para não alterar a caixa da face, que é o que
+   define a aresta do rolamento.
+   A sobra vertical existe só do lado de FORA de cada face: as duas se encontram em ângulo reto na
+   aresta do rolamento, e o que passar dela invade o espaço da outra face — mais perto da câmera — e
+   aparece como uma tarja preta sobre a última linha do texto A no meio do giro. Na face A a aresta é
+   embaixo; na B, que está de bruços, é em cima. */
+.roll .roll__face::before{content:"";position:absolute;left:-2em;right:-2em;background:var(--bg);z-index:-1}
+.roll .roll__face--a::before{top:-.35em;bottom:0}
+.roll .roll__face--b::before{top:0;bottom:-.35em}
+/* a "luz" (brightness) é aplicada só na tinta, nunca na placa: filtrar a face inteira clarearia ou
+   escureceria o fundo dela e o retângulo apareceria recortado contra a página */
+.roll .roll__ink{display:block;will-change:filter}
+.roll .roll__face--b{transform:rotateX(-90deg)} /* de bruços, do eixo até o plano da face A: é o chão do bloco, até ele girar +90° */
+
 /* STEPS (4 passos) — mesmo padrão do .reveal-wrap: ".steps" gruda no topo (sticky) dentro de um
-   wrapper mais alto (altura extra somada via JS), e um ScrollTrigger com scrub revela os cards um a
-   um em diagonal (sudeste), desfocando o card anterior a cada novo card revelado. Sem JS/Scroll-
-   Trigger ou com motion reduzido, os cards ficam em coluna normal (sem sobreposição), todos legíveis. */
+   wrapper mais alto (altura extra somada via JS), e um ScrollTrigger com scrub mostra UMA etapa por
+   vez: o bloco entra pelo seu lado, fica nítido por um trecho da rolagem e sai antes de o próximo
+   entrar. Não há mais cards — só texto solto, alternando os lados (1 e 3 à esquerda, 2 e 4 à
+   direita). Sem JS/ScrollTrigger, com motion reduzido ou em tela de celular, os quatro blocos
+   empilham em coluna normal, todos legíveis. */
 .steps-wrap{position:relative}
-.steps{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(2rem,4vh,3rem);padding:clamp(2rem,5vh,3.5rem) var(--gutter)}
+.steps{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:clamp(2rem,4vh,3rem);padding:clamp(5rem,13vh,7.5rem) var(--gutter) clamp(2rem,5vh,3.5rem)}
 .steps__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.01em;line-height:1.25;font-size:var(--fs-statement);color:var(--ink);text-align:center;max-width:18.2em;margin:0 auto} /* medida em "em", igual à do reveal: com a fonte acompanhando a viewport, um max-width em px viraria 3 linhas nas telas grandes */
-.steps__stack{--card-size:clamp(210px,16vw,300px);--step-y:clamp(2rem,4.5vw,3.5rem);display:grid;row-gap:1.25rem;width:var(--card-size);max-width:90vw;margin:0 auto} /* sem JS: cards empilham normalmente em coluna, todos legíveis */
-.steps__stack.is-enhanced{display:block;position:relative;width:min(100%,1500px);height:calc(var(--card-size) + var(--step-y)*3);margin:0 auto} /* com JS: ocupa toda a largura útil da seção — card 1 na ponta esquerda, card 4 na ponta direita */
+/* --stepx-size herda os clamps do antigo --card-size, e as três fontes continuam sendo múltiplos
+   dele — só que 1.75x os múltiplos que os cards usavam (.045/.076/.058 -> .08/.133/.1, arredondados).
+   Assim a proporção vale em QUALQUER largura de tela, sem precisar de um novo chute de vw.
+   O único acréscimo é o teto de 36vh dentro do min(): a seção é sticky, então o que não couber na
+   altura da viewport fica cortado. Em telas largas e baixas (notebook de 13"), é a altura, não a
+   largura, que manda no tamanho. */
+.steps__stack{--stepx-size:clamp(190px,min(14.5vw,36vh),272px);display:grid;row-gap:clamp(2.5rem,7vh,4.5rem);width:min(100%,1280px);margin:0 auto} /* sem JS: as 4 etapas empilham em coluna, todas legíveis */
+.steps__stack.is-enhanced{flex:1;align-content:center;row-gap:0} /* com JS: as 4 dividem a MESMA célula do grid — só uma aparece por vez */
+.steps__stack.is-enhanced > .stepx{grid-column:1;grid-row:1;opacity:0} /* opacity:0 evita flash antes de o scrub assumir */
 @media(max-width:600px){
-  .steps__stack{--card-size:clamp(160px,44vw,210px);--step-y:clamp(1.25rem,5vw,2rem)}
+  .steps__stack{--stepx-size:clamp(145px,40vw,190px)}
 }
-/* fontes e espaçamento derivados diretamente de --card-size (em vez de clamp/vw próprios) para que a
-   proporção de texto por área continue igual em qualquer tamanho de card — garante quadrado perfeito
-   (width = height = --card-size) sem sobra de espaço nem estouro de texto */
-.scard{border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.03);backdrop-filter:blur(18px);
-  width:var(--card-size);height:var(--card-size);padding:calc(var(--card-size)*.085);overflow:hidden;
-  display:flex;flex-direction:column;justify-content:center}
-.steps__stack.is-enhanced .scard{position:absolute;top:0;will-change:transform,opacity,filter}
-/* espalha os 4 cards ao longo de toda a largura do container (0% -> 100%-card), formando a escadinha diagonal mais longa possível */
-.steps__stack.is-enhanced .scard:nth-child(1){top:0;left:0%;z-index:1}
-.steps__stack.is-enhanced .scard:nth-child(2){top:var(--step-y);left:calc((100% - var(--card-size)) * 0.333);z-index:2}
-.steps__stack.is-enhanced .scard:nth-child(3){top:calc(var(--step-y)*2);left:calc((100% - var(--card-size)) * 0.667);z-index:3}
-.steps__stack.is-enhanced .scard:nth-child(4){top:calc(var(--step-y)*3);left:calc(100% - var(--card-size));z-index:4}
-.scard__num{font-family:var(--f-mono);font-weight:600;font-size:calc(var(--card-size)*.045);letter-spacing:.12em;color:var(--neon);display:block}
-.scard__title{font-family:var(--f-display);font-weight:700;font-size:calc(var(--card-size)*.076);line-height:1.15;letter-spacing:-.01em;color:var(--ink);margin:calc(var(--card-size)*.045) 0 calc(var(--card-size)*.03)}
-.scard__desc{font-family:var(--f-body);font-size:calc(var(--card-size)*.058);line-height:1.4;color:var(--muted);margin:0}
+/* medida também derivada de --stepx-size (≈26em do corpo do texto): a descrição mais longa cai em
+   3 linhas e sobra folga entre a etapa da esquerda e a da direita */
+.stepx{width:min(100%,calc(var(--stepx-size)*2.6));will-change:transform,opacity,filter}
+/* alternância dos lados; o texto acompanha o lado, alinhado pela borda de fora */
+.stepx:nth-child(odd){justify-self:start;text-align:left}
+.stepx:nth-child(even){justify-self:end;text-align:right}
+@media(max-width:860px){.stepx{text-align:left}} /* no fallback em coluna, tudo alinhado à esquerda */
+/* a numeração é elemento gráfico, não rótulo: display 900 em corpo grande (múltiplo de
+   --stepx-size, como as outras três fontes da etapa), tracking negativo e entrelinha comprimida.
+   Fica encostada no título — é a primeira linha do bloco, não uma eyebrow acima dele.
+   O recuo óptico compensa a lateral vazia do algarismo, para a haste do número alinhar com a
+   do título; ele acompanha o lado de fora, por isso alterna com o nth-child. */
+.stepx__num{font-family:var(--f-display);font-weight:900;font-size:calc(var(--stepx-size)*.32);letter-spacing:-.055em;line-height:.82;color:var(--neon);display:block;font-variant-numeric:tabular-nums}
+.stepx:nth-child(odd) .stepx__num{margin-left:-.045em}
+.stepx:nth-child(even) .stepx__num{margin-right:-.045em}
+@media(max-width:860px){.stepx:nth-child(even) .stepx__num{margin-right:0;margin-left:-.045em}} /* no fallback em coluna todos alinham à esquerda */
+.stepx__title{font-family:var(--f-display);font-weight:800;font-size:calc(var(--stepx-size)*.133);line-height:1.1;letter-spacing:-.02em;color:var(--ink);margin:.12em 0 .28em}
+.stepx__desc{font-family:var(--f-body);font-size:calc(var(--stepx-size)*.1);line-height:1.35;color:var(--muted);margin:0}
+.stepx__title .word{color:inherit;display:inline-block;will-change:transform,opacity} /* inline-block: o stagger anima y palavra a palavra */
 
 /* WAITLIST (lista de espera embutida na página, não é overlay) — coluna esquerda com título,
    descrição e 2 cards; coluna direita com o formulário completo de cadastro. */
@@ -208,7 +247,7 @@ body.has-cursor,body.has-cursor *{cursor:none}
 /* acima de 900px o formulário é bem mais alto que o bloco de texto; a coluna
    esquerda gruda no topo (abaixo do nav fixo) e acompanha a rolagem do
    formulário em vez de deixar um vazio na metade inferior */
-.waitlist__intro{position:sticky;top:6.5rem;z-index:2} /* z-index:2 -> acima dos cards que entram por trás (fixos, z-index:1) */
+.waitlist__intro{position:sticky;top:6.5rem;z-index:2}
 @media(max-width:900px){.waitlist__intro{position:static}}
 
 .waitlist__title{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em;line-height:1.12;font-size:clamp(2rem,4vw,2.9rem);color:var(--ink);margin:0}
@@ -220,8 +259,6 @@ body.has-cursor,body.has-cursor *{cursor:none}
 .wcard__desc{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.94rem;line-height:1.55;margin:0}
 
 .waitlist__panel{position:relative;z-index:2;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);overflow:hidden} /* z-index:2 -> o formulário fica na frente dos cards que entram por trás dele */
-.wform__head{display:flex;align-items:center;background:#000;padding:.9rem clamp(1.1rem,2.4vw,1.6rem)}
-.wform__eyebrow{font-family:var(--f-mono);font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
 
 .wform{padding:clamp(1.4rem,3vw,2.2rem)}
 .wform>*+*{margin-top:2.4rem}
@@ -278,7 +315,6 @@ body.has-cursor,body.has-cursor *{cursor:none}
 /* Escala de texto do formulário da lista de espera. Usuários relataram dificuldade de leitura nos
    tamanhos pequenos (labels em mono maiúsculo, hints, consentimento). Os .wf__* são compartilhados
    com os modais .lead ("Vamos conversar"), por isso o aumento fica preso ao .waitlist__panel. */
-.waitlist__panel .wform__eyebrow{font-size:.82rem}
 .waitlist__panel .wf{gap:.85rem} /* respiro maior entre o título do campo e o input/botões abaixo dele */
 .waitlist__panel .wf__label{font-size:.92rem;letter-spacing:.06em;line-height:1.35}
 .waitlist__panel .wf__input,.waitlist__panel .wf__select{font-size:1.05rem;padding:.9rem 1rem}
@@ -301,12 +337,15 @@ body.has-cursor,body.has-cursor *{cursor:none}
 @media(max-width:820px){.corp__cards{grid-template-columns:1fr}}
 .ccard{display:flex;flex-direction:column;gap:1rem;background:#0a0a0a;border-radius:20px;padding:clamp(1.6rem,3vw,2.4rem);transition:transform .4s var(--ease)}
 .ccard:hover{transform:translateY(-4px)}
+/* o hover do .ccard__btn é disparado pelo card inteiro, não só pelo botão: pousar o cursor em
+   qualquer ponto do retângulo preenche o botão de neon e avança a seta, junto com a elevação do card.
+   O clique continua sendo só do botão. */
 .ccard__title{font-family:var(--f-display);font-weight:700;font-size:clamp(1.2rem,2vw,1.5rem);letter-spacing:-.01em;color:#fff;margin:0}
 .ccard__desc{font-family:var(--f-body);font-weight:500;font-size:.98rem;line-height:1.6;color:rgba(255,255,255,.7);margin:0;flex:1}
 .ccard__btn{align-self:flex-start;display:inline-flex;align-items:center;gap:.55rem;font-family:var(--f-body);font-weight:600;font-size:.88rem;color:var(--neon);border:1px solid rgba(255,255,255,.24);border-radius:100px;padding:.8rem 1.3rem;transition:background .3s,color .3s,border-color .3s}
-.ccard__btn:hover{background:var(--neon);color:#0a0a0a;border-color:var(--neon)}
+.ccard:hover .ccard__btn{background:var(--neon);color:#0a0a0a;border-color:var(--neon)}
 .ccard__btn .arr{display:inline-block;transition:transform .35s var(--ease)}
-.ccard__btn:hover .arr{transform:translateX(4px)}
+.ccard:hover .ccard__btn .arr{transform:translateX(4px)}
 .arr svg{width:1em;height:1em;display:block} /* seta minimalista (chevron) usada em todos os botões com .arr, tamanho relativo ao font-size do botão pai (1.5x do tamanho original de .62em) */
 
 /* SOCIAL (seção com prévia dos posts do Instagram @xokenergia, fundo preto igual às demais seções) */
@@ -349,14 +388,14 @@ a.hl:hover{color:var(--muted)}
 .footer{background:var(--bg);border-top:1px solid var(--line);padding:clamp(2.4rem,6vh,3.6rem) var(--gutter) clamp(1.6rem,4vh,2.2rem)}
 .footer__inner{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(1.6rem,4vh,2.4rem)}
 .footer__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}
-.footer__logo{font-family:var(--f-display);font-weight:900;font-size:clamp(2.2rem,4vw,3rem);letter-spacing:-.04em}
+.footer__logo{font-family:var(--f-display);font-weight:900;font-size:clamp(2.2rem,4vw,3rem);letter-spacing:-.04em;color:var(--neon)}
 .footer__links{display:flex;flex-wrap:wrap;align-items:center;gap:clamp(1.4rem,3vw,2.2rem);font-family:var(--f-mono);font-weight:500;font-size:.86rem;letter-spacing:.1em;text-transform:uppercase}
 .footer__links a{position:relative;color:var(--muted);transition:color .3s}
 .footer__links a::after{content:"";position:absolute;left:0;bottom:-4px;height:1px;width:0;background:var(--neon);transition:width .35s var(--ease)}
 .footer__links a:hover{color:var(--ink)}
 .footer__links a:hover::after{width:100%}
 .footer__bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;padding-top:clamp(1.6rem,4vh,2.2rem);border-top:1px solid var(--line)}
-.footer__copy,.footer__policy{font-family:var(--f-body);font-weight:500;font-size:.82rem;color:var(--faint);margin:0}
+.footer__copy,.footer__policy{font-family:var(--f-body);font-weight:500;font-size:.95rem;color:var(--faint);margin:0}
 .footer__policy{transition:color .3s}
 .footer__policy:hover{color:var(--ink)}
 @media(max-width:560px){.footer__top,.footer__bottom{flex-direction:column;align-items:flex-start}}
@@ -439,7 +478,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 .mobnav.is-open .mobnav__cta{opacity:1;transform:translateY(0);transition:opacity .55s var(--ease) .32s,transform .55s var(--ease) .32s}
 .mobnav__cta .arr{display:inline-block;transition:transform .35s var(--ease)}
 .mobnav__cta:hover .arr{transform:translateX(4px)}
-.mobnav__foot{margin-top:clamp(1.6rem,5vh,2.6rem);font-family:var(--f-body);font-weight:500;font-size:.8rem;letter-spacing:.02em;color:var(--faint)}
 .mobnav__close{
   position:absolute;top:clamp(.7rem,1.4vw,1.05rem);right:var(--gutter);z-index:2;
   width:41px;height:41px;border-radius:100px;border:1px solid var(--line-strong);
@@ -479,14 +517,14 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 <div class="grain" aria-hidden="true"></div>
 
 <nav class="nav" id="nav" aria-label="Principal">
-  <a href="#" class="nav__logo" data-cursor>XOK</a>
+  <a href="#" class="nav__logo">XOK</a>
   <div class="nav__links">
     <a href="#stepsWrap" id="navSolucao">Solução</a>
     <a href="#corp" id="navEmpresas">Empresas</a>
     <a href="#social" id="navRedes">Redes</a>
     <a href="#faq" id="navFaq">FAQ</a>
   </div>
-  <a href="#waitlist" id="navParticipar" class="nav__cta" data-cursor>Participar</a>
+  <a href="#waitlist" id="navParticipar" class="nav__cta">Participar</a>
   <button class="nav__toggle" id="navToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobnav">
     <span aria-hidden="true"></span><span aria-hidden="true"></span>
   </button>
@@ -503,7 +541,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     <a class="mobnav__link" href="#faq" id="mFaq">FAQ</a>
   </nav>
   <a class="mobnav__cta" href="#waitlist" id="mCta">Participar <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
-  <p class="mobnav__foot">XOK — dê o seu match de energIA.</p>
 </div>
 
 <section class="reveal-wrap" id="revealWrap">
@@ -534,25 +571,25 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   <div class="steps" id="steps">
     <h2 class="steps__title">São quatro passos para acessar uma nova forma de comprar energia</h2>
     <div class="steps__stack" id="stepsStack">
-      <article class="scard">
-        <span class="scard__num">01</span>
-        <h3 class="scard__title">Você fotografa a fatura</h3>
-        <p class="scard__desc">Uma foto ou o PDF da sua conta de luz. Ela contém todas as informações que precisamos.</p>
+      <article class="stepx">
+        <span class="stepx__num">01</span>
+        <h3 class="stepx__title">Você fotografa a fatura</h3>
+        <p class="stepx__desc">Uma foto ou o PDF da sua conta de luz. Ela contém todas as informações que precisamos.</p>
       </article>
-      <article class="scard">
-        <span class="scard__num">02</span>
-        <h3 class="scard__title">A XOK lê o seu consumo</h3>
-        <p class="scard__desc">Distribuidora, histórico dos últimos meses, classe tarifária e padrão de uso. É o que define para qual oferta você se encaixa.</p>
+      <article class="stepx">
+        <span class="stepx__num">02</span>
+        <h3 class="stepx__title">A XOK lê o seu consumo</h3>
+        <p class="stepx__desc">Distribuidora, histórico dos últimos meses, classe tarifária e padrão de uso. É o que define para qual oferta você se encaixa.</p>
       </article>
-      <article class="scard">
-        <span class="scard__num">03</span>
-        <h3 class="scard__title">Você recebe uma oferta</h3>
-        <p class="scard__desc">Uma, clara, com o preço fixo e a validade. Sem tabela comparativa, sem letra miúda, sem escolher entre dez fornecedores que você não conhece.</p>
+      <article class="stepx">
+        <span class="stepx__num">03</span>
+        <h3 class="stepx__title">Você recebe uma oferta</h3>
+        <p class="stepx__desc">Uma, clara, com o preço fixo e a validade. Sem tabela comparativa, sem letra miúda, sem escolher entre dez fornecedores que você não conhece.</p>
       </article>
-      <article class="scard">
-        <span class="scard__num">04</span>
-        <h3 class="scard__title">Aceita e pronto</h3>
-        <p class="scard__desc">Contrato de 24 meses com preço travado. A migração é feita nos bastidores. Sua rotina não muda.</p>
+      <article class="stepx">
+        <span class="stepx__num">04</span>
+        <h3 class="stepx__title">Aceita e pronto</h3>
+        <p class="stepx__desc">Contrato de 24 meses com preço travado. A migração é feita nos bastidores. Sua rotina não muda.</p>
       </article>
     </div>
   </div>
@@ -576,10 +613,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     </div>
 
     <div class="waitlist__panel" id="waitlistPanel">
-      <div class="wform__head">
-        <span class="wform__eyebrow">Cadastro na lista</span>
-      </div>
-
       <form class="wform" id="wform" novalidate>
         <div class="wf">
           <label class="wf__label" for="wfNome">Nome</label>
@@ -675,7 +708,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 
         <input class="hp" type="text" id="wfWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
-        <button class="wform__submit" id="wformSubmit" type="submit" data-cursor>Entrar na lista</button>
+        <button class="wform__submit" id="wformSubmit" type="submit">Entrar na lista</button>
         <p class="wform__err" id="wformErr" role="alert" aria-live="polite"></p>
       </form>
 
@@ -699,12 +732,12 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       <article class="ccard">
         <h3 class="ccard__title">Geradores e comercializadoras</h3>
         <p class="ccard__desc">Acesso a um canal de varejo residencial e de pequeno comércio, com consumidores agrupados por perfil de carga em blocos previsíveis.</p>
-        <a class="ccard__btn" id="corpSupplierBtn" href="#" data-cursor>ver a proposta para fornecedores <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+        <a class="ccard__btn" id="corpSupplierBtn" href="#">ver a proposta para fornecedores <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
       </article>
       <article class="ccard">
         <h3 class="ccard__title">Empresas, órgãos públicos e sindicatos</h3>
         <p class="ccard__desc">Benefício de energia para a sua base de funcionários ou associados, sem custo para a instituição e sem processo licitatório de compra.</p>
-        <a class="ccard__btn" id="corpInstitutionalBtn" href="#" data-cursor>ver a proposta institucional <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+        <a class="ccard__btn" id="corpInstitutionalBtn" href="#">ver a proposta institucional <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
       </article>
     </div>
   </div>
@@ -712,12 +745,12 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 <section class="social" id="social">
   <div class="social__inner">
-    <h2 class="social__title">Acompanhe nossas redes sociais em <a class="hl" href="https://www.instagram.com/xokenergia/" target="_blank" rel="noopener noreferrer" data-cursor>@xokenergia</a></h2>
+    <h2 class="social__title">Acompanhe nossas redes sociais em <a class="hl" href="https://www.instagram.com/xokenergia/" target="_blank" rel="noopener noreferrer">@xokenergia</a></h2>
     <div class="social__cards">
-      <a class="scard" href="https://www.instagram.com/p/DbUTSXikbzI/?img_index=1" target="_blank" rel="noopener noreferrer" data-cursor aria-label="Ver post no Instagram">
+      <a class="scard" href="https://www.instagram.com/p/DbUTSXikbzI/?img_index=1" target="_blank" rel="noopener noreferrer" aria-label="Ver post no Instagram">
         <img class="scard__img" src="assets/post1.png" alt="Post da XOK no Instagram" loading="lazy" />
       </a>
-      <a class="scard" href="https://www.instagram.com/p/DcELmOpER0K/?img_index=1" target="_blank" rel="noopener noreferrer" data-cursor aria-label="Ver post no Instagram">
+      <a class="scard" href="https://www.instagram.com/p/DcELmOpER0K/?img_index=1" target="_blank" rel="noopener noreferrer" aria-label="Ver post no Instagram">
         <img class="scard__img" src="assets/post2.png" alt="Post da XOK no Instagram" loading="lazy" />
       </a>
     </div>
@@ -783,14 +816,14 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 <footer class="footer" id="footer">
   <div class="footer__inner">
     <div class="footer__top">
-      <a href="#" class="footer__logo" data-cursor>XOK</a>
+      <a href="#" class="footer__logo">XOK</a>
       <nav class="footer__links" aria-label="Navegação do rodapé">
         <a href="#stepsWrap">Solução</a>
         <a href="#waitlist">Participar</a>
         <a href="#corp">Empresas</a>
         <a href="#social">Redes</a>
         <a href="#faq">FAQ</a>
-        <a href="https://www.instagram.com/xokenergia" target="_blank" rel="noopener noreferrer" data-cursor>Instagram</a>
+        <a href="https://www.instagram.com/xokenergia" target="_blank" rel="noopener noreferrer">Instagram</a>
       </nav>
     </div>
     <div class="footer__bottom">
@@ -802,7 +835,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 <section class="lead" id="leadSupplier" role="dialog" aria-modal="true" aria-label="Proposta para fornecedores" aria-hidden="true">
   <div class="lead__top" data-lreveal>
-    <button class="lead__back" id="leadSupplierBack" type="button" data-cursor><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
+    <button class="lead__back" id="leadSupplierBack" type="button"><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
     <span class="lead__brand">XOK</span>
   </div>
   <div class="lead__inner">
@@ -872,7 +905,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 
       <input class="hp" type="text" id="leadSupplierWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <button class="wform__submit" id="leadSupplierSubmit" type="submit" data-cursor>Enviar mensagem</button>
+      <button class="wform__submit" id="leadSupplierSubmit" type="submit">Enviar mensagem</button>
       <p class="wform__err" id="leadSupplierErr" role="alert" aria-live="polite"></p>
     </form>
 
@@ -889,7 +922,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 <section class="lead" id="leadInstitutional" role="dialog" aria-modal="true" aria-label="Proposta institucional" aria-hidden="true">
   <div class="lead__top" data-lreveal>
-    <button class="lead__back" id="leadInstitutionalBack" type="button" data-cursor><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
+    <button class="lead__back" id="leadInstitutionalBack" type="button"><span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Voltar</button>
     <span class="lead__brand">XOK</span>
   </div>
   <div class="lead__inner">
@@ -961,7 +994,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 
       <input class="hp" type="text" id="leadInstitutionalWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <button class="wform__submit" id="leadInstitutionalSubmit" type="submit" data-cursor>Enviar mensagem</button>
+      <button class="wform__submit" id="leadInstitutionalSubmit" type="submit">Enviar mensagem</button>
       <p class="wform__err" id="leadInstitutionalErr" role="alert" aria-live="polite"></p>
     </form>
 
@@ -976,7 +1009,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   </div>
 </section>
 
-<div class="cursor__dot" id="cursorDot" aria-hidden="true"></div>
 
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
@@ -988,6 +1020,16 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   var IS_MOBILE = window.matchMedia("(max-width:860px)").matches; /* mesmo breakpoint do menu móvel (≤860px) */
   var hasGSAP = !!window.gsap;
   var hasScrollTrigger = hasGSAP && !!window.ScrollTrigger;
+
+  /* separa um bloco de texto em palavras, preservando os espaços como nós de texto entre os spans.
+     compartilhado pelo setupReveal (neon palavra a palavra) e pelo setupSteps (stagger de entrada). */
+  function wrapWords(el){
+    var tokens = el.textContent.split(/(\s+)/);
+    el.innerHTML = tokens.map(function(t){
+      return /\S/.test(t) ? '<span class="word">'+t+'</span>' : t;
+    }).join("");
+    return el.querySelectorAll(".word");
+  }
 
   /* ---- BACKEND: envio dos três formulários -------------------------------------
      Endpoint único (Edge Function `submit-lead`, repo xok-backend); o campo "form" diz
@@ -1055,15 +1097,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   /* a intro deve tocar do início a cada carregamento (scrollRestoration já foi setado
      no <head>, antes de tudo); aqui só garante a posição inicial */
   window.scrollTo(0,0);
-
-  /* custom cursor: filled dot follows pointer */
-  if(CAN_HOVER && hasGSAP){
-    document.body.classList.add("has-cursor");
-    var dot = document.getElementById("cursorDot");
-    var dx = gsap.quickTo(dot,"x",{duration:0.12,ease:"power3"});
-    var dy = gsap.quickTo(dot,"y",{duration:0.12,ease:"power3"});
-    window.addEventListener("mousemove",function(e){ dx(e.clientX); dy(e.clientY); },{passive:true});
-  }
 
   /* header ganha o vidro fosco escuro (.scrolled) só quando a página começa a rolar de
      verdade por baixo dele — ou seja, depois que ".reveal" descola do topo (fim do pin),
@@ -1750,15 +1783,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       window.addEventListener("scroll",function(){ scrollDown.classList.remove("is-visible"); },{once:true,passive:true});
     }
 
-    /* separa um bloco de texto em palavras, preservando os espaços como nós de texto entre os spans */
-    function wrapWords(el){
-      var tokens = el.textContent.split(/(\s+)/);
-      el.innerHTML = tokens.map(function(t){
-        return /\S/.test(t) ? '<span class="word">'+t+'</span>' : t;
-      }).join("");
-      return el.querySelectorAll(".word");
-    }
-
     var words = texts.map(wrapWords); /* palavras de cada texto, na mesma ordem de "texts" */
     var words1 = words[0];
     if(words.some(function(ws){ return !ws.length; })) return;
@@ -1820,174 +1844,255 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     };
   }
 
-  /* SCROLL STEPS — os 4 cards de "como funciona" revelam um a um em diagonal (sudeste) conforme o
-     scroll avança; a cada novo card revelado, o card anterior perde foco (blur + opacidade reduzida),
-     como uma escadinha de cartas parcialmente sobrepostas. Mesmo esquema de sticky-wrap do setupReveal. */
+  /* SCROLL STEPS — as 4 etapas de "como funciona" passam UMA DE CADA VEZ dentro do pin: o bloco
+     entra pelo seu próprio lado (1 e 3 pela esquerda, 2 e 4 pela direita) desfocado e deslocado,
+     fica nítido e parado por um trecho da rolagem mais longo que a entrada e a saída somadas (é a
+     leitura que manda no ritmo, não o movimento), e sai por cima — de volta para o seu lado —
+     terminando exatamente quando o próximo começa a entrar. Nunca há dois blocos visíveis ao mesmo
+     tempo, que é o que permite o corpo de texto grande (2.5x o dos antigos cards) caber na tela.
+     A última etapa não sai: ela segura até a seção despinar, para a passagem à waitlist não ter uma
+     tela vazia no meio. Mesmo esquema de sticky-wrap do setupReveal.
+     Sem GSAP/ScrollTrigger, com motion reduzido ou em tela de celular, os blocos ficam em coluna
+     normal via CSS, todos legíveis (nenhum fica com opacity:0 porque .is-enhanced nem é aplicada). */
   function setupSteps(){
     var wrap  = document.getElementById("stepsWrap");
     var section = document.getElementById("steps");
     var stack = document.getElementById("stepsStack");
     if(!wrap || !section || !stack) return;
-    var cards = Array.prototype.slice.call(stack.querySelectorAll(".scard"));
-    if(!cards.length) return;
+    var blocks = Array.prototype.slice.call(stack.querySelectorAll(".stepx"));
+    if(!blocks.length) return;
 
-    /* sem GSAP/ScrollTrigger, com motion reduzido ou em tela de celular: cards ficam em coluna
-       normal via CSS, um após o outro, sem escadinha/sobreposição e sem o handoff animado para
-       a waitlist (mesmo fallback usado para REDUCE, agora também aplicado a ≤860px) */
     if(!hasScrollTrigger || REDUCE || IS_MOBILE) return;
 
     gsap.registerPlugin(ScrollTrigger);
-    stack.classList.add("is-enhanced"); /* ativa o posicionamento absoluto em escadinha */
+    stack.classList.add("is-enhanced"); /* sobrepõe os 4 blocos na mesma célula do grid */
 
-    gsap.set(cards,{opacity:0,y:36});
+    /* palavras do título de cada etapa, para o stagger da entrada */
+    var titleWords = blocks.map(function(b){
+      var t = b.querySelector(".stepx__title");
+      return t ? wrapWords(t) : [];
+    });
 
-    /* altura extra do wrapper = rolagem (em px) em que ".steps" fica grudado no topo.
-       agora cobre apenas a fase de revelação; o "handoff" para o formulário roda depois,
-       com os cards em position:fixed (ver setupStepsHandoff). */
-    var stepDistance = 850;                          /* rolagem dedicada a cada card */
-    var stuckDistance = stepDistance * cards.length;
+    /* Durações relativas (unidades da timeline) convertidas em rolagem real por UNIT_PX. Assim dá
+       para mexer no ritmo de uma fase sem roubar rolagem das outras: a altura do wrapper — ou seja,
+       o quanto ".steps" fica grudado no topo — é derivada do total de unidades, não o contrário. */
+    var UNIT_PX  = 285;                            /* px de rolagem por unidade da timeline */
+    var enterDur = 0.8;                            /* entrada: de fora da tela até assentar */
+    var holdDur  = 1.7;                            /* nítido e PARADO antes de começar a sair */
+    var exitDur  = 0.8;                            /* saída */
+    /* a etapa 1 começa a entrar no instante exato em que o título trava no topo (o trigger começa
+       em "top top", que é o mesmo ponto em que ".steps" gruda). Com o hold padrão, o olho ainda
+       estava no título quando ela já ia embora — daí o bônus: a 1 fica parada mais tempo que as
+       outras, para haver leitura depois que o título assenta. */
+    var firstHoldBonus = 0.7;
+    var tailHold = 1;                              /* a última fica parada antes de a seção despinar */
+    var last = blocks.length - 1;
+
+    /* início de cada etapa: a saída de uma termina no instante exato em que a próxima começa a
+       entrar (nunca há duas visíveis). Acumulado, e não i*segmento, porque os holds diferem. */
+    var starts = [], holds = [], cursor = 0;
+    blocks.forEach(function(_, i){
+      holds[i]  = holdDur + (i === 0 ? firstHoldBonus : 0);
+      starts[i] = cursor;
+      cursor   += enterDur + holds[i] + exitDur;
+    });
+    var totalUnits = starts[last] + enterDur + tailHold; /* a última não sai: o resto da rolagem é hold */
+
+    var stuckDistance = Math.round(totalUnits * UNIT_PX);
     wrap.style.height = "calc(100vh + "+stuckDistance+"px)";
 
-    /* fase 1 (pinada): revela os 4 cards em escadinha diagonal, desfocando o card anterior */
     var tl = gsap.timeline({
-      scrollTrigger:{ trigger:wrap, start:"top top", end:"bottom bottom", scrub:0.4 }
-    });
-    var revealDur = 1;                   /* duração (em unidades da timeline) da transição de entrada de cada card */
-    var holdDur = 1.2;                   /* tempo extra, nítido, que o card fica parado antes do próximo cobri-lo */
-    var segment = revealDur + holdDur;   /* intervalo entre o início da revelação de um card e do próximo */
-    cards.forEach(function(card, i){
-      var start = i * segment;
-      tl.to(card,{opacity:1,y:0,ease:"none",duration:revealDur},start);                                    /* revela o card i */
-      if(i > 0) tl.to(cards[i-1],{opacity:0.45,filter:"blur(5px)",ease:"none",duration:revealDur},start);   /* só desfoca o anterior após ele já ter ficado nítido por holdDur */
+      scrollTrigger:{ trigger:wrap, start:"top top", end:"bottom bottom", scrub:0.5 }
     });
 
-    /* fase 2 (handoff): quando a seção despina, entrega os cards à rotina que os leva ao formulário.
-       passa o ScrollTrigger da revelação para que o handoff possa desligá-lo enquanto controla os cards
-       (senão o scrub da revelação continua escrevendo opacity/filter por cima e sobrescreve o handoff). */
-    setupStepsHandoff(wrap, cards, tl.scrollTrigger);
+    blocks.forEach(function(block, i){
+      var side = (i % 2 === 0) ? -1 : 1;           /* -1 = esquerda (etapas 1 e 3), +1 = direita (2 e 4) */
+      var at = starts[i];
+
+      /* entrada: vem de fora e de baixo, desfocada, e assenta no lugar */
+      tl.fromTo(block,
+        { opacity:0, x:side*110, y:64, filter:"blur(18px)" },
+        { opacity:1, x:0, y:0, filter:"blur(0px)", ease:"none", duration:enterDur }, at);
+      /* o título ainda se monta palavra a palavra enquanto o bloco assenta — mas termina antes do
+         fim da entrada, senão o hold começa com o texto ainda se montando */
+      if(titleWords[i].length){
+        tl.fromTo(titleWords[i],
+          { opacity:0, y:26 },
+          { opacity:1, y:0, ease:"none", duration:enterDur*0.5,
+            stagger:{ each:0.05, from:"start" } }, at + enterDur*0.15);
+      }
+
+      /* saída: sobe e recua para o mesmo lado de onde veio, desfocando de novo.
+         a última não sai — segura visível até a seção despinar. */
+      if(i < last){
+        tl.to(block,
+          { opacity:0, x:side*70, y:-64, filter:"blur(18px)", ease:"none", duration:exitDur },
+          at + enterDur + holds[i]);
+      }
+    });
+
+    /* tween vazio só para a timeline durar até totalUnits: o scrub estica a DURAÇÃO da timeline
+       sobre a rolagem do trigger, então sem esta cauda a entrada da etapa 4 terminaria exatamente
+       no despin e ela sairia da tela ainda se montando. */
+    tl.to({}, { duration: tailHold }, starts[last] + enterDur);
   }
 
-  /* SCROLL STEPS -> WAITLIST (handoff): quando ".steps" termina de despinar e a página desce para
-     "Entre agora e acompanhe a construção", os 4 cards viram position:fixed e viajam formando um
-     caminho diagonal que entra por trás do formulário (z-index:1, abaixo do painel z-index:2).
-     Interpolação manual por progresso (sem timeline com scrub) para controlar posição/escala/opacidade
-     com precisão e manter continuidade com o estado final da fase de revelação. */
-  function setupStepsHandoff(wrap, cards, revealST){
-    var last  = cards.length - 1;
-    var starts = [];       /* posição/tamanho de tela de cada card, capturados uma vez */
-    var captured = false;  /* evita recapturar a cada entrada no range */
-    var active = false;    /* true enquanto os cards estão soltos em position:fixed */
-    var revealOff = false; /* true enquanto o ScrollTrigger da revelação está desligado (handoff no controle) */
+  /* PRISMA (texto 4 -> título dos 4 passos) — a última frase do reveal ("Nós encontramos, entre as
+     ofertas disponíveis...") e o título da seção de passos ("São quatro passos...") são tratados como
+     duas faces de um bloco retangular deitado que rola 90° sobre a aresta inferior: a face da frente
+     tomba para trás e sai de vista enquanto a face que estava voltada para baixo sobe até a vertical,
+     no lugar exato onde a outra estava. Não é fade nem card flip: as duas faces são rígidas, dividem
+     o mesmo eixo (a aresta) e giram juntas — a perspectiva é que dá o encolhimento e o "peso".
 
-    /* rampa suave entre a e b (0 fora do intervalo, smoothstep dentro) */
+     Por que um palco em position:fixed em vez de animar os elementos onde eles moram: as duas frases
+     estão em pins diferentes, separados por exatamente uma viewport de rolagem. Quando ".reveal"
+     despina (base de #revealWrap na base da tela) o topo de #stepsWrap ainda está lá embaixo, e falta
+     100vh para ".steps" grudar. É essa costura que o palco cobre — ele entra no instante em que o
+     texto A para de estar preso e sai no instante em que ".steps" gruda, e nos dois instantes as
+     faces estão exatamente em cima dos elementos reais, então as trocas são invisíveis.
+
+     Os originais ficam com visibility:hidden enquanto o palco está no ar: visibility, e não opacity,
+     porque a opacity do texto A pertence ao scrub do setupReveal e seria sobrescrita.
+
+     O progresso vem da geometria de documento + window.scrollY:
+     é determinístico até em saltos de rolagem, onde callbacks do ScrollTrigger não são confiáveis. */
+  function setupPrismRoll(){
+    var revealSec = document.getElementById("reveal");
+    var stepsWrap = document.getElementById("stepsWrap");
+    var stepsSec  = document.getElementById("steps");
+    if(!revealSec || !stepsWrap || !stepsSec) return;
+    var revTexts = revealSec.querySelectorAll(".reveal__text");
+    var textA = revTexts.length ? revTexts[revTexts.length - 1] : null; /* último texto do reveal */
+    var textB = stepsSec.querySelector(".steps__title");
+    if(!textA || !textB) return;
+
+    /* mesmo critério do setupSteps: sem ScrollTrigger, com motion reduzido ou no celular não há pin
+       nem costura para cobrir — o texto A rola para fora e o título entra normalmente, como sempre */
+    if(!hasScrollTrigger || REDUCE || IS_MOBILE) return;
+
+    var ROLL_END = 0.62; /* fração do trecho em que os 90° se completam (o resto é a chegada) */
+    var MOVE_IN  = 0.30; /* a partir daqui a aresta começa a subir rumo ao lugar final do título */
+    var neonColor = (getComputedStyle(document.documentElement).getPropertyValue("--neon")||"").trim() || "#E2FF00";
+
     function smoothstep(a, b, x){ var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t*t*(3 - 2*t); }
 
-    /* destino de cada card: área do formulário (direita), escalonado em diagonal p/ formar o "caminho" */
-    function targetFor(i){
-      var vw = window.innerWidth, vh = window.innerHeight;
-      return { x: vw*0.60 + i*vw*0.015, y: vh*0.30 + i*vh*0.05 };
+    var stage = document.createElement("div");
+    stage.className = "roll";
+    stage.setAttribute("aria-hidden","true"); /* cópia visual: o texto acessível é o dos originais */
+    var block = document.createElement("div");
+    block.className = "roll__block";
+    stage.appendChild(block);
+    document.body.appendChild(stage);
+
+    var faceA = null, faceB = null, inkA = null, inkB = null, built = false;
+
+    /* os clones nascem só na primeira ativação: o texto A só está neon depois que o scrub do reveal
+       chegou ao fim, e as palavras carregam a cor em style inline (escrita pelo GSAP). Reaplicar o
+       neon no clone cobre o caso de a ativação vir de um salto de rolagem/restauração de posição. */
+    function build(){
+      if(built) return;
+      faceA = textA.cloneNode(true);
+      faceA.removeAttribute("id");
+      faceA.className = "reveal__text roll__face roll__face--a";
+      /* o clone herda o style inline que o GSAP escreveu no original (opacity/transform do scrub);
+         inline vence a folha de estilo, então é preciso zerar na mão ou a face pode nascer invisível */
+      faceA.style.opacity = "1"; faceA.style.transform = "";
+      Array.prototype.forEach.call(faceA.querySelectorAll(".word"), function(w){ w.style.color = neonColor; });
+      faceA.innerHTML = '<span class="roll__ink">' + faceA.innerHTML + '</span>';
+      faceB = document.createElement("p"); /* <p>, não <h2>: não duplica o heading da seção */
+      faceB.className = "steps__title roll__face roll__face--b";
+      faceB.innerHTML = '<span class="roll__ink">' + textB.innerHTML + '</span>';
+      inkA = faceA.firstChild; inkB = faceB.firstChild;
+      block.appendChild(faceA);
+      block.appendChild(faceB);
+      built = true;
+      sizeFaces();
     }
 
-    /* captura a posição de tela atual dos cards (fim da revelação: ainda na escadinha, centralizados) */
-    function capture(){
-      starts = cards.map(function(card){
-        var r = card.getBoundingClientRect();
-        return { x:r.left, y:r.top, w:r.width, h:r.height };
-      });
-      captured = true;
+    /* geometria: posições medidas DENTRO de cada seção pinada. Como ".reveal" e ".steps" grudam em
+       top:0 e ocupam a largura toda, o deslocamento interno de cada frase é a posição de tela dela no
+       momento em que a seção está presa — vale para qualquer scrollY, sem depender de ler rects no
+       meio da animação. */
+    var vpH = 0, startDoc = 0;
+    var aTop = 0, aH = 0, aW = 0, aCx = 0;
+    var bTop = 0, bH = 0, bW = 0, bCx = 0;
+
+    function sizeFaces(){
+      if(!built) return;
+      faceA.style.width = aW + "px"; faceA.style.marginLeft = (-aW/2) + "px";
+      faceB.style.width = bW + "px"; faceB.style.marginLeft = (-bW/2) + "px";
+      /* a face A é a frente do bloco, e o eixo é a aresta de trás: ela fica uma profundidade
+         adiante do eixo. Profundidade = altura da face B, que é o chão que vai virar frente. */
+      faceA.style.transform = "translateZ(" + bH + "px)";
     }
 
-    /* solta os cards do fluxo: viram fixos na mesma posição de tela, atrás do formulário.
-       idempotente: só aplica os estilos na primeira vez (guarda pelo flag active) */
-    function toFixed(){
-      if(active) return;
-      /* tira o controle da revelação: sem isso o scrub dela continua escrevendo o estado final
-         (opacity 0.45/1) por cima do handoff logo após um salto de scroll, travando os cards visíveis */
-      if(revealST && !revealOff){ revealST.disable(false); revealOff = true; }
-      if(!captured) capture();
-      cards.forEach(function(card, i){
-        var s = starts[i];
-        card.style.position = "fixed";
-        card.style.margin = "0";
-        card.style.left = s.x + "px";
-        card.style.top  = s.y + "px";
-        card.style.width = s.w + "px";
-        card.style.height = s.h + "px";
-        card.style.zIndex = "1";           /* abaixo do formulário (painel z-index:2) */
-        card.style.pointerEvents = "none"; /* nunca bloqueia os campos do formulário */
-      });
-      active = true;
-    }
-
-    /* devolve os cards ao stack (estado da fase de revelação) ao rolar de volta para cima.
-       guarda pelo flag active: nunca limpa estilos antes de o handoff ter assumido — assim não
-       apaga o opacity:0 inicial que a fase de revelação (gsap.set) aplica nos cards ainda ocultos */
-    function restore(){
-      if(!active) return;
-      cards.forEach(function(card){
-        card.style.position = card.style.margin = card.style.left = card.style.top = "";
-        card.style.width = card.style.height = card.style.zIndex = "";
-        card.style.pointerEvents = card.style.transform = card.style.filter = card.style.opacity = "";
-      });
-      active = false;
-      /* devolve o controle à revelação e reaplica o estado dela na posição de scroll atual */
-      if(revealST && revealOff){ revealST.enable(); revealST.refresh(); revealOff = false; }
-    }
-
-    /* toda a viagem + dissolução se completa em p = HANDOFF_END, bem antes de a waitlist encher a tela.
-       assim os cards já estão invisíveis quando a borda superior do formulário sobe até a região deles
-       (~p 0.57), evitando que fiquem aparecendo por trás do painel translúcido. remapear p -> q
-       "acelera" a animação para concluí-la cedo. */
-    var HANDOFF_END = 0.43;
-    function render(p){
-      if(!active) return;
-      var q = p < HANDOFF_END ? p / HANDOFF_END : 1; /* progresso interno: 0..1, concluído em HANDOFF_END */
-      var eased = smoothstep(0, 1, q);          /* suaviza o trajeto/convergência */
-      var fade  = smoothstep(0.5, 0.92, q);     /* some no trecho final, terminando pouco antes de o form encostar (~p 0.43) */
-      cards.forEach(function(card, i){
-        var s = starts[i], t = targetFor(i);
-        var x = s.x + (t.x - s.x)*eased;         /* desloca no eixo x rumo ao formulário */
-        var y = s.y + (t.y - s.y)*eased;         /* desloca no eixo y rumo ao formulário */
-        var scale = 1 + (0.8 - 1)*eased;         /* encolhe apenas até 0.8 (bem maior que os 0.5 de antes) */
-        var sb = (i < last) ? 5 : 0;             /* blur inicial = herdado do estado de revelação */
-        var so = (i < last) ? 0.45 : 1;          /* opacidade inicial = herdada do estado de revelação */
-        card.style.left = x + "px";
-        card.style.top  = y + "px";
-        card.style.transform = "scale(" + scale + ")";
-        card.style.filter = "blur(" + (sb + (7 - sb)*eased) + "px)"; /* desfoca um pouco mais ao chegar */
-        card.style.opacity = so * (1 - fade);    /* dissolve ao alcançar o formulário */
-      });
-    }
-
-    /* progresso do handoff derivado direto da geometria do wrap, não de callbacks do ScrollTrigger:
-       p = 0 quando a base do wrap toca a base da viewport (".steps" acabou de despinar) e p = 1 quando
-       a base do wrap alcança o topo (a waitlist preencheu a tela). ler o rect a cada quadro torna o
-       estado 100% determinístico — inclusive em saltos que atravessam todo o range de uma vez (ex.:
-       restauração de posição no reload), onde os callbacks do ScrollTrigger não disparam de forma
-       confiável e deixariam os cards presos e visíveis. */
-    /* geometria do wrap em coordenadas de DOCUMENTO (estável durante a rolagem; só muda em load/resize).
-       derivar o progresso de window.scrollY — que já vem atualizado no evento de scroll — em vez de ler
-       getBoundingClientRect() no handler evita depender da atualização do rect, que sob rolagem
-       instantânea/saltos pode vir defasada e travar os cards num estado intermediário. */
-    var vpH = window.innerHeight;
-    var wrapBottomDoc = 0;
     function measure(){
       vpH = window.innerHeight;
-      wrapBottomDoc = wrap.getBoundingClientRect().bottom + window.scrollY; /* base do wrap em coord. de documento */
+      /* scrollY em que ".reveal" despina = topo de #stepsWrap uma viewport acima da base da tela */
+      startDoc = stepsWrap.getBoundingClientRect().top + window.scrollY - vpH;
+      var rs = revealSec.getBoundingClientRect(), ra = textA.getBoundingClientRect();
+      aTop = ra.top - rs.top; aH = ra.height; aW = ra.width; aCx = ra.left + ra.width/2 - rs.left;
+      var ss = stepsSec.getBoundingClientRect(), rb = textB.getBoundingClientRect();
+      bTop = rb.top - ss.top; bH = rb.height; bW = rb.width; bCx = rb.left + rb.width/2 - ss.left;
+      sizeFaces();
+    }
+
+    var on = false;
+    function activate(){
+      if(on) return;
+      /* re-mede a cada entrada, e não só no load: a medição inicial acontece durante o lockScroll da
+         intro, quando o overflow:hidden tira a barra de rolagem e a viewport fica ~15px mais larga —
+         o centro capturado ali sai meia barra à direita do centro real e a face entrava deslocada. */
+      measure();
+      build();
+      textA.style.visibility = "hidden";
+      textB.style.visibility = "hidden";
+      stage.classList.add("is-on");
+      on = true;
+    }
+    function deactivate(){
+      if(!on) return;
+      stage.classList.remove("is-on");
+      textA.style.visibility = "";
+      textB.style.visibility = "";
+      on = false;
+    }
+
+    /* p = 0 -> texto A parado onde o pin o deixou; p = 1 -> ".steps" grudou e a face B está em cima
+       do título real. A aresta (origem do giro) parte da base do texto A e chega na base do título:
+       um bloco que rola de fato desloca a aresta de contato, então esse trajeto é parte da física.
+       O brightness faz as vezes de luz vinda de cima: o chão do bloco chega escuro e acende ao virar
+       frente, e a frente clareia mais um tanto ao virar face de cima. */
+    function render(p){
+      var r = smoothstep(0, 1, Math.min(1, p / ROLL_END)); /* 0..1 do giro */
+      var m = smoothstep(MOVE_IN, 1, p);                   /* 0..1 da chegada ao lugar do título */
+      var hinge = (aTop + aH) + ((bTop + bH) - (aTop + aH)) * m;
+      var cx    = aCx + (bCx - aCx) * m;
+      /* o eixo começa uma profundidade atrás do plano da tela (é a aresta de trás, com a face A
+         adiante dele, em cima da tela) e chega nele ao fechar os 90° — aí a face B, que girou para
+         a vertical em torno desse eixo, cai exatamente em cima do título real. Um bloco que rola de
+         verdade termina uma profundidade mais longe; sem esse avanço a face B aterrissaria atrás da
+         tela, menor que o <h2>, e a troca de saída deixaria de ser invisível. */
+      block.style.transform = "translate3d(" + cx + "px," + hinge + "px,0) translateZ(" + (-bH*(1-r)) + "px) rotateX(" + (90*r) + "deg)";
+      /* fechados os 90°, a face A está deitada e fora de cena: escondê-la evita que a placa dela,
+         vista de viés quando a aresta sobe acima da origem da perspectiva, reapareça como uma fatia
+         atrás do título. Nesse ponto ela já está de perfil (1px), então não há salto visível. */
+      faceA.style.visibility = (r >= 1) ? "hidden" : "";
+      inkA.style.filter = "brightness(" + (1 + 0.3*r) + ")";
+      inkB.style.filter = "brightness(" + (0.3 + 0.7*r) + ")";
     }
 
     function apply(){
-      var p = (window.scrollY - wrapBottomDoc) / vpH + 1; /* 0 em "bottom bottom", 1 em "bottom top" */
-      if(p <= 0){ restore(); }                       /* antes do handoff: cards no stack (fase de revelação) */
-      else if(p >= 1){ toFixed(); render(1); }       /* depois do handoff: fixos e já dissolvidos (opacity 0) */
-      else { toFixed(); render(p); }                 /* durante: viajando por trás do formulário */
+      var p = (window.scrollY - startDoc) / vpH;
+      if(p <= 0 || p >= 1){ deactivate(); return; } /* fora da costura: quem manda são os originais */
+      activate();
+      render(p);
     }
 
     window.addEventListener("scroll", apply, { passive:true });
-    /* mudanças de layout recalculam a geometria e reavaliam (posições capturadas dependem da viewport) */
-    window.addEventListener("resize", function(){ captured = false; if(active) restore(); measure(); apply(); }, { passive:true });
-    window.addEventListener("load", function(){ measure(); apply(); }); /* re-mede após fontes/imagens assentarem o layout */
-    measure(); apply(); /* estado inicial no load (respeita a posição de scroll atual) */
+    window.addEventListener("resize", function(){ deactivate(); measure(); apply(); }, { passive:true });
+    window.addEventListener("load", function(){ measure(); apply(); }); /* re-mede depois de fontes/imagens */
+    measure(); apply();
   }
 
   /* SCROLL WAITLIST — entrada simples (não pinada) da seção de lista de espera: título, descrição,
@@ -2141,6 +2246,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     if(fired) return; fired=true;
     window.scrollTo(0,0);
     playMark(); setupReveal(); setupSteps(); setupWaitlist(); setupFaqReveal(); setupFaq();
+    setupPrismRoll(); /* depois de setupReveal()/setupSteps(): mede os dois wraps já com a altura final */
     setupNavGlass(); /* depois de setupReveal(): precisa da altura final de #revealWrap já aplicada */
   }
   if(document.fonts && document.fonts.ready){ document.fonts.ready.then(go); }
