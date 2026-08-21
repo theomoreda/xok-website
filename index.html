@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-deB0U8wk8DcVJT+i/V19KI6ZqzJcrWYv2t3oVcGEQIc='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-5isnKikJrM1GfLO3FRQW1mX3vfzIIdMPjrnmnRfQo98='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -32,6 +32,10 @@ if("scrollRestoration" in history){ history.scrollRestoration = "manual"; }
   --bg:#0a0a0a;
   --ink:#ffffff;
   --neon:#E2FF00;
+  /* cor do acento da declaração do herói ("...no mercado livre de energia"), lida pelo JS.
+     No desktop é o neon sobre o preto; no celular o painel É neon, então o bloco ≤860px troca
+     esta variável por preto -- neon sobre neon não existe. */
+  --hero-accent:var(--neon);
   --faint:rgba(255,255,255,.42);
   --muted:rgba(255,255,255,.56);
   --line:rgba(255,255,255,.13);
@@ -139,6 +143,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .reveal.is-overlaid{grid-template-areas:"layer"} /* com JS: sobrepõe XOK e textos numa única célula */
 .reveal.is-overlaid > *{grid-area:layer;min-width:0}
 .reveal__inner{width:100%}
+/* raio (assets/black-bolt-image.svg): peça exclusiva da abertura em celular, ver bloco ≤860px */
+.hero-bolt{display:none}
 .reveal__stack{display:grid;row-gap:clamp(1.5rem,4vh,2.5rem)} /* sem JS: os dois textos empilham normalmente, ambos legíveis */
 .reveal__stack.is-enhanced > .reveal__text{grid-column:1;grid-row:1} /* com JS: sobrepõe os dois na mesma célula p/ o crossfade */
 /* todos os textos do reveal (1..N) dividem tamanho, peso e medida. O tamanho vem de
@@ -490,13 +496,82 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 @media(min-width:861px){ .mobnav{display:none} }
 @media(max-width:860px){ .nav__toggle{display:inline-flex;animation:navToggleIn .6s var(--ease) .35s both} }
 
-/* ===== HERÓI em tela de celular (≤860px): sem o ícone de "role o mouse" (não faz sentido em
-   touch) e a tagline sempre quebrando linha em vez de estourar a largura da tela — sobrepõe o
-   white-space:nowrap de (hover:hover) e (pointer:fine), que alguns aparelhos híbridos (touch +
-   mouse/trackpad) continuam reportando mesmo em telas estreitas ===== */
+/* ===== HERÓI em tela de celular (≤860px) =====
+   No celular a abertura NÃO é a coreografia de pins do desktop: ".reveal" deixa de ser sticky,
+   #revealWrap não recebe altura extra (setupReveal nem chega a rodar, ver setupHeroMobile) e o
+   topo do site vira UMA tela — um painel NEON, com a frase 1 como declaração, a frase 4 como apoio
+   e o raio sangrando no rodapé. Logo abaixo já entra "São quatro passos...".
+   O XOK gigante e a tagline "DÊ O SEU MATCH DE ENERGIA" saem: numa tela de celular eles gastavam
+   metade da altura e empurravam a declaração para baixo; a marca continua no header.
+   As frases 2 e 3 também saem — o que elas explicam é retomado nos 4 passos e no FAQ.
+   Com o fundo neon toda a tinta inverte: a tipografia é preta (o painel é a cor), e o acento da
+   declaração deixa de ser neon (--hero-accent, lido pelo JS em setupHeroMobile) e passa a ser o
+   preto cheio contra o preto rebaixado do resto da frase.
+   O ícone de "role o mouse" continua escondido (não faz sentido em touch) e a tagline volta a
+   quebrar linha — alguns aparelhos híbridos (touch + trackpad) reportam (hover:hover) e caíam no
+   white-space:nowrap, estourando a largura da tela. ===== */
 @media(max-width:860px){
+  :root{--hero-accent:#0a0a0a} /* sobre neon o acento é o preto cheio; ver setupHeroMobile */
+
   .scrolldown{display:none}
   .bigmark__tag{white-space:normal}
+
+  /* o XOK do header não entra na coreografia da intro: chega junto do botão do menu, com a mesma
+     animação, mesma duração e mesmo atraso -- o header aparece inteiro de uma vez, na abertura da
+     aba, e não depende do XOK gigante nem da rolagem. (No desktop ele continua entrando na intro,
+     junto dos links e do CTA; ver playMark.) */
+  .nav__logo{animation:navToggleIn .6s var(--ease) .35s both}
+
+  /* enquanto o header está POR CIMA do painel neon ele ainda não é .scrolled (setupNavGlass só
+     liga o vidro no fim do painel, justamente para a barra preta não cruzar o amarelo) — e nesse
+     trecho a tinta do header inverte: branco sobre neon não se lê. */
+  .nav:not(.scrolled) .nav__logo{color:var(--bg)}
+  .nav:not(.scrolled) .nav__toggle{border-color:rgba(10,10,10,.3)}
+  .nav:not(.scrolled) .nav__toggle span{background:var(--bg)}
+
+  /* PAINEL NEON, uma tela cheia, em duas faixas: os textos ocupam a sobra de cima (1fr, e o
+     align-items:center herdado do desktop os centraliza DENTRO dessa faixa) e o raio fica preso
+     na de baixo (auto). padding-bottom:0 e justify-items:stretch são o que deixam o raio sangrar
+     até o rodapé e até as duas bordas laterais.
+     --hero-pad-l: a goteira da esquerda encolhe (o texto vai mais para a borda) sem mexer na da
+     direita; é a mesma medida que o raio devolve em margem negativa. */
+  .reveal{--hero-pad-l:clamp(.9rem,4vw,1.6rem);
+          position:static;min-height:100svh;background:var(--neon);
+          grid-template-rows:1fr auto;align-content:stretch;justify-items:stretch;
+          row-gap:clamp(1.25rem,4vh,2rem);
+          padding:clamp(5.5rem,14vh,7rem) var(--gutter) 0 var(--hero-pad-l)}
+  .bigmark{display:none} /* XOK gigante + tagline: fora do celular ela continua sendo a 1ª camada do pin */
+  .reveal__stack{row-gap:clamp(.9rem,2.8vh,1.5rem)}
+  #revealText2,#revealText3{display:none}
+
+  /* bandeira à esquerda: sem centro e sem margin-inline:auto, os dois blocos alinham pela mesma
+     vertical e a medida passa a ser dada pelas goteiras (assimétricas) do painel */
+  .reveal__text{text-align:left;margin-inline:0;max-width:none}
+
+  /* DECLARAÇÃO (frase 1). O tamanho é limitado também pela ALTURA (4.6vh dentro do min): numa tela
+     estreita e baixa é a altura que manda, senão a frase empurra o raio para fora do painel.
+     Preto rebaixado (.58) para o acento em preto cheio ter para onde ir. */
+  #revealText1{opacity:0;color:rgba(10,10,10,.58);
+               font-size:clamp(1.85rem,min(8.6vw,4.6vh),2.9rem);line-height:1.08;letter-spacing:-.035em}
+  /* APOIO (frase 4): outra família, outro peso, outra cor — a hierarquia é o que faz os dois
+     blocos lerem como um só. */
+  #revealText4{opacity:0;color:rgba(10,10,10,.66);
+               font-family:var(--f-body);font-weight:500;letter-spacing:0;
+               font-size:clamp(1.02rem,4.4vw,1.3rem);line-height:1.5;max-width:32ch}
+
+  /* RAIO: encosta na borda direita da tela e se estica o máximo que o painel permite.
+     Margem negativa em vez de width:100vw — 100vw ignora a barra de rolagem e, num aparelho que
+     desenhe barra ocupando espaço, criaria rolagem lateral na página inteira. */
+  .hero-bolt{display:block;align-self:end;
+             margin:0 calc(var(--gutter) * -1) 0 calc(var(--hero-pad-l) * -1)}
+  .hero-bolt img{display:block;width:100%;height:auto}
+
+  /* máscara de linha (montada por splitLines, em setupHeroMobile): a linha sobe por baixo de uma
+     janela que a recorta. O padding estende só a área de RECORTE — a margem negativa devolve o
+     espaço, então a entrelinha continua sendo a do line-height. Sem ele os acentos das maiúsculas
+     e as descidas de "g/q" ficariam cortados. */
+  .reveal__text .hline{display:block;overflow:hidden;padding:.1em 0 .14em;margin:-.1em 0 -.14em}
+  .reveal__text .hline__in{display:block;will-change:transform}
 }
 
 /* ===== Viewports muito baixos (paisagem / janelas curtas): evita corte do herói ===== */
@@ -505,6 +580,18 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   .bigmark{width:min(74vw,1100px)}
   .bigmark__tag{font-size:clamp(1.45rem,5vh,2.4rem);margin-top:clamp(.35rem,1.5vh,.9rem)}
 }
+/* celular DEITADO (e janelas muito baixas): o XOK encolhe bem mais que os 74vw da regra acima,
+   o apoio sai e as respirações se fecham — na horizontal a altura é o único orçamento que existe.
+   Precisa vir DEPOIS do bloco (max-height:500px): mesma especificidade, quem vem por último vence. */
+@media(max-width:860px) and (max-height:560px){
+  .reveal{row-gap:clamp(.9rem,3.5vh,1.6rem);padding-block:clamp(1.5rem,6vh,2.5rem) 0}
+  #revealText4{display:none}
+  /* deitado, largura total daria ao raio quase metade da altura da tela: ele recua para menos de
+     meia largura, mas continua colado na borda direita (margin-left:auto empurra, a margem
+     negativa da direita permanece). */
+  .hero-bolt{width:min(52%,380px);margin-left:auto}
+}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   .grain{display:none}
@@ -560,6 +647,13 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         <p class="reveal__text" id="revealText3">Quem entrega pela rede continua sendo a sua distribuidora.</p>
         <p class="reveal__text" id="revealText4">Nós encontramos, entre as ofertas disponíveis, a que mais combina com o seu padrão de consumo.</p>
       </div>
+    </div>
+    <!-- RAIO — só aparece no celular (display:none por padrão, ver .hero-bolt no bloco ≤860px):
+         fecha o painel neon ocupando a sobra embaixo dos dois textos. Decorativo, sem conteúdo
+         para leitor de tela. width/height são os do viewBox: reservam a proporção antes do SVG
+         carregar, então o painel não pula quando ele chega. -->
+    <div class="hero-bolt" aria-hidden="true">
+      <img src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
     </div>
     <div class="scrolldown" id="scrollDown" aria-hidden="true">
       <span class="scrolldown__mouse"><span class="scrolldown__dot"></span></span>
@@ -1110,12 +1204,25 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var navEl = document.querySelector(".nav");
     if(!navEl) return;
 
-    /* sem pin dirigido por scroll (sem ScrollTrigger ou motion reduzido): mantém o
-       comportamento simples de sempre (vidro assim que sair do topo) */
-    if(!hasScrollTrigger || REDUCE){
-      var simple = function(){ navEl.classList.toggle("scrolled", window.scrollY > 4); };
+    /* sem pin dirigido por scroll (sem ScrollTrigger, motion reduzido ou celular): mantém o
+       comportamento simples de sempre (vidro assim que sair do topo). No celular a hero tem
+       exatamente uma tela, então a conta do pin daria limiar ~0 e o vidro entraria já no topo. */
+    if(!hasScrollTrigger || REDUCE || IS_MOBILE){
+      /* No celular o herói é um painel NEON de uma tela: o limiar de sempre (scrollY>4) faria a
+         barra preta aparecer por cima do amarelo já no primeiro pixel de rolagem. Aqui o vidro
+         entra quando o painel termina de sair — o mesmo instante em que a tinta invertida do
+         header (bloco ≤860px, .nav:not(.scrolled)) deixa de ser necessária.
+         Fora do celular (sem ScrollTrigger / motion reduzido) fica o comportamento simples. */
+      var wrapMob = IS_MOBILE ? document.getElementById("revealWrap") : null;
+      var limiar = 4;
+      var medir = function(){
+        limiar = wrapMob ? Math.max(4, wrapMob.offsetHeight - navEl.offsetHeight) : 4;
+      };
+      var simple = function(){ navEl.classList.toggle("scrolled", window.scrollY > limiar); };
+      medir();
       simple();
       window.addEventListener("scroll", simple, {passive:true});
+      window.addEventListener("resize", function(){ medir(); simple(); }, {passive:true});
       return;
     }
 
@@ -1636,7 +1743,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   function setupPaint(){
     var tag = document.querySelector(".bigmark__tag");
     var canvas = document.getElementById("tagCanvas");
-    if(!tag || !canvas || REDUCE || !CAN_HOVER) return;
+    /* IS_MOBILE: no painel neon a tagline inteira sai (display:none) — medir um elemento sem caixa
+       daria um canvas 0x0. Aparelhos híbridos (touch + trackpad ≤860px) chegariam até aqui. */
+    if(!tag || !canvas || REDUCE || !CAN_HOVER || IS_MOBILE) return;
     if(tag.classList.contains("is-painting")) return;
     var ctx = canvas.getContext && canvas.getContext("2d");
     if(!ctx) return;
@@ -1754,6 +1863,101 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      para o playMark agendar o disparo e para o onComplete religar o scroll do texto 2. */
   var introStarter = null, introSeq = null;
 
+  /* quebra um texto já passado por wrapWords() em LINHAS visuais e envolve cada uma numa máscara:
+     <span class="hline"><span class="hline__in">palavras da linha</span></span>.
+     O agrupamento é por offsetTop das palavras — é assim que se acha a quebra real do navegador,
+     sem plugin (o SplitText do GSAP é pago e não pode ser vendorizado aqui, ver CSP).
+     Precisa rodar com a fonte final já carregada, senão as linhas são medidas com a fonte de
+     fallback e o agrupamento sai errado — quem garante isso é o document.fonts.ready do go(). */
+  function splitLines(el){
+    var words = el.querySelectorAll(".word");
+    if(!words.length) return [];
+    var lines = [], cur = null, top = null, i;
+    for(i=0;i<words.length;i++){
+      var t = words[i].offsetTop;
+      if(top === null || Math.abs(t-top) > 2){ cur = []; lines.push(cur); top = t; }
+      cur.push(words[i]);
+    }
+    var frag = document.createDocumentFragment();
+    lines.forEach(function(ws){
+      var outer = document.createElement("span"); outer.className = "hline";
+      var inner = document.createElement("span"); inner.className = "hline__in";
+      ws.forEach(function(w,j){
+        if(j) inner.appendChild(document.createTextNode(" ")); /* appendChild MOVE o span: o texto some do lugar antigo */
+        inner.appendChild(w);
+      });
+      outer.appendChild(inner); frag.appendChild(outer);
+    });
+    el.innerHTML = ""; /* sobraram só os espaços entre as palavras */
+    el.appendChild(frag);
+    return Array.prototype.slice.call(el.querySelectorAll(".hline__in"));
+  }
+
+  /* HERÓI — versão de CELULAR (≤860px), no lugar de setupReveal.
+     O desktop abre com uma coreografia de dois pins (XOK -> 4 frases no scrub -> prisma -> 4 passos).
+     No celular isso não se sustenta: são ~1900px de rolagem grudada para três frases curtas, o scrub
+     briga com o momentum do toque (a palavra continua acendendo depois que o dedo saiu) e o
+     lockScroll por overflow:hidden não segura o toque no iOS. Aqui a abertura é UMA tela e tudo é
+     dirigido por TEMPO — nada depende de onde o dedo está.
+     Composição: XOK + tagline / frase 1 como declaração / frase 4 como apoio. As frases 2 e 3 ficam
+     de fora (display:none no CSS do bloco ≤860px).
+     A declaração sobe LINHA A LINHA por baixo de uma máscara e o fecho ("no mercado livre de
+     energia") acende em neon quando a última linha pousa — é a assinatura do desktop, condensada:
+     um acento só, já que o XOK e o "IA" da tagline também são neon.
+     Como IS_MOBILE é lido uma vez no load, girar um tablet de retrato (≤860) para paisagem (>860)
+     mantém esta versão — mesma limitação que setupSteps e setupPrismRoll já têm. Por isso as frases
+     2 e 3 têm a opacidade restaurada mesmo escondidas: se o CSS de desktop voltar numa rotação, elas
+     aparecem empilhadas e legíveis em vez de ficarem invisíveis. */
+  function setupHeroMobile(){
+    var el1 = document.getElementById("revealText1");   /* declaração */
+    var el2 = document.getElementById("revealText4");   /* apoio */
+    var hidden = [document.getElementById("revealText2"), document.getElementById("revealText3")].filter(Boolean);
+    if(!el1 || !el2) return;
+
+    var words = wrapWords(el1);
+    if(!words.length) return;
+
+    /* acento neon: da palavra "mercado" até o fim da frase. Procurado pelo texto, não por índice —
+       mexer no fim da frase 1 muda o acento, e é para mudar mesmo. */
+    var accent = [];
+    for(var i=0;i<words.length;i++){
+      if(/^mercado$/i.test(words[i].textContent)){ accent = Array.prototype.slice.call(words, i); break; }
+    }
+
+    /* --hero-accent muda com a media query (neon no desktop, preto no painel neon do celular).
+       O fallback é literal porque o valor acaba escrito inline pelo GSAP: se algo devolvesse um
+       "var(...)" não resolvido, a cor entraria como texto inválido e a frase ficaria sem acento. */
+    function corDeToken(nome){
+      var v = (getComputedStyle(document.documentElement).getPropertyValue(nome)||"").trim();
+      return v.indexOf("var(") === 0 ? "" : v;
+    }
+    var accentColor = corDeToken("--hero-accent") || corDeToken("--neon") || "#E2FF00";
+
+    hidden.forEach(function(el){ el.style.opacity = "1"; });
+
+    /* sem GSAP ou com motion reduzido: a hero inteira já legível, sem máscara nem animação */
+    if(!hasGSAP || REDUCE){
+      el1.style.opacity = "1";
+      el2.style.opacity = "1";
+      accent.forEach(function(w){ w.style.color = accentColor; });
+      return;
+    }
+
+    var lines = splitLines(el1);
+    if(!lines.length){ el1.style.opacity = "1"; el2.style.opacity = "1"; return; }
+
+    gsap.set(el1,{opacity:1});          /* a partir daqui quem esconde o texto é a máscara */
+    gsap.set(lines,{yPercent:118});     /* 118 e não 100: a área de recorte da .hline é maior que a linha */
+    gsap.set(el2,{opacity:0,y:18});
+
+    /* 1,9s: o traço do XOK ainda está terminando de preencher (playMark) e a tagline acabou de
+       pousar — a declaração entra por cima dessa cauda, em vez de esperar a intro acabar */
+    gsap.timeline({delay:1.9})
+      .to(lines,{yPercent:0,duration:1.0,ease:"expo.out",stagger:0.085})
+      .to(accent,{color:accentColor,duration:0.45,ease:"none",stagger:0.045},"-=0.42")
+      .to(el2,{opacity:1,y:0,duration:0.9,ease:"power3.out"},"-=0.72");
+  }
+
   /* INTRO/REVEAL — o herói (XOK+tagline) e todos os textos vivem no mesmo pin (".reveal", sticky no topo).
      Fluxo: a intro preenche o XOK; 1,5s depois o TEXTO 1 sobe no lugar do XOK (auto, por tempo), com a
      revelação neon começando antecipadamente durante a subida; ao rolar, os TEXTOS 2..N entram um por
@@ -1763,6 +1967,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      propriedades, evitando que o scrub sobrescreva a animação por tempo).
      A sequência é lida do DOM: basta acrescentar outro <p class="reveal__text"> no #revealStack. */
   function setupReveal(){
+    /* no celular a abertura é outra: uma hero única, dirigida por tempo (ver setupHeroMobile).
+       Sai antes de qualquer medição/pin — #revealWrap fica com a altura natural de uma tela. */
+    if(IS_MOBILE){ setupHeroMobile(); return; }
+
     var wrap    = document.getElementById("revealWrap");
     var section = document.getElementById("reveal");
     var stack   = document.getElementById("revealStack");
@@ -2128,7 +2336,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var bm = document.getElementById("bigmark");
     var fillRect = document.getElementById("fillRect");
     var tag = document.querySelector(".bigmark__tag");
-    var navItems = document.querySelectorAll(".nav__logo, .nav__links a, .nav__cta");
+    /* no celular o XOK do header fica FORA da intro: ele já está na tela desde a abertura da aba,
+       entrando junto do botão do menu (animação no CSS do bloco ≤860px). Se o GSAP o incluísse
+       aqui, o gsap.set(opacity:0) o apagaria até a intro chegar nele. */
+    var navItems = document.querySelectorAll(IS_MOBILE ? ".nav__links a, .nav__cta" : ".nav__logo, .nav__links a, .nav__cta");
     if(!hasGSAP){
       if(bm) bm.style.opacity = "1";
       if(fillRect) fillRect.setAttribute("width","1000");
