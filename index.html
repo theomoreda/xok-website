@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-mRGmpYViiBUXOnBQYhummP3ZnJ6Zg3vEyrkUtTwxTF0='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-NvejDkfbn+8Qs/yBnCrGoc2nklkE9ysP3jWGQv1EsQA='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -32,10 +32,6 @@ if("scrollRestoration" in history){ history.scrollRestoration = "manual"; }
   --bg:#0a0a0a;
   --ink:#ffffff;
   --neon:#E2FF00;
-  /* cor do acento da declaração do herói ("...no mercado livre de energia"), lida pelo JS.
-     No desktop é o neon sobre o preto; no celular o painel É neon, então o bloco ≤860px troca
-     esta variável por preto -- neon sobre neon não existe. */
-  --hero-accent:var(--neon);
   --faint:rgba(255,255,255,.42);
   --muted:rgba(255,255,255,.56);
   --line:rgba(255,255,255,.13);
@@ -596,15 +592,13 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
    O XOK gigante e a tagline "DÊ O SEU MATCH DE ENERGIA" saem: numa tela de celular eles gastavam
    metade da altura e empurravam a declaração para baixo; a marca continua no header.
    As frases 2 e 3 também saem — o que elas explicam é retomado nos 4 passos e no FAQ.
-   Com o fundo neon a tinta do painel inverte: a tipografia é preta (o painel é a cor), e o acento
-   da declaração deixa de ser neon (--hero-accent, lido pelo JS em setupHeroMobile) e passa a ser o
-   preto cheio contra o preto rebaixado do resto da frase.
+   Com o fundo neon a tinta do painel inverte: a tipografia é preta (o painel é a cor) e a
+   declaração vai INTEIRA em preto cheio — sobre neon um acento neon não existiria, e um acento
+   em preto pediria rebaixar o resto da frase, que é justamente o que não se quer no topo.
    O ícone de "role o mouse" continua escondido (não faz sentido em touch) e a tagline volta a
    quebrar linha — alguns aparelhos híbridos (touch + trackpad) reportam (hover:hover) e caíam no
    white-space:nowrap, estourando a largura da tela. ===== */
 @media(max-width:860px){
-  :root{--hero-accent:#0a0a0a} /* sobre neon o acento é o preto cheio; ver setupHeroMobile */
-
   .scrolldown{display:none}
   .bigmark__tag{white-space:normal}
 
@@ -648,8 +642,8 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
   /* DECLARAÇÃO (frase 1). O tamanho é limitado também pela ALTURA (4.6vh dentro do min): numa tela
      estreita e baixa é a altura que manda, senão a frase empurra o raio para fora do painel.
-     Preto rebaixado (.58) para o acento em preto cheio ter para onde ir. */
-  #revealText1{opacity:0;color:rgba(10,10,10,.58);
+     Preto cheio, sem acento — ver o comentário do bloco ≤860px. */
+  #revealText1{opacity:0;color:#0a0a0a;
                font-size:clamp(1.85rem,min(8.6vw,4.6vh),2.9rem);line-height:1.08;letter-spacing:-.035em}
   /* APOIO (frase 4): outra família, outro peso, outra cor — a hierarquia é o que faz os dois
      blocos lerem como um só. */
@@ -2064,9 +2058,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      dirigido por TEMPO — nada depende de onde o dedo está.
      Composição: XOK + tagline / frase 1 como declaração / frase 4 como apoio. As frases 2 e 3 ficam
      de fora (display:none no CSS do bloco ≤860px).
-     A declaração sobe LINHA A LINHA por baixo de uma máscara e o fecho ("no mercado livre de
-     energia") acende em neon quando a última linha pousa — é a assinatura do desktop, condensada:
-     um acento só, já que o XOK e o "IA" da tagline também são neon.
+     A declaração sobe LINHA A LINHA por baixo de uma máscara, toda em preto cheio: sobre o painel
+     neon não sobra acento possível (neon sobre neon não existe, e preto sobre preto rebaixado só
+     funcionaria escurecendo o resto da frase).
      Como IS_MOBILE é lido uma vez no load, girar um tablet de retrato (≤860) para paisagem (>860)
      mantém esta versão — mesma limitação que setupSteps e setupPrismRoll já têm. Por isso as frases
      2 e 3 têm a opacidade restaurada mesmo escondidas: se o CSS de desktop voltar numa rotação, elas
@@ -2077,6 +2071,12 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var hidden = [document.getElementById("revealText2"), document.getElementById("revealText3")].filter(Boolean);
     if(!el1 || !el2) return;
 
+    /* No celular a declaração é OUTRA frase: mais curta e sem "geradores e comercializadoras", que
+       aqui viraria uma parede de linhas dentro de uma tela só. Trocada aqui e não no HTML porque o
+       computador continua com a frase longa — e wrapWords lê textContent, então as duas versões não
+       podem coexistir no DOM (uma escondida por CSS ainda seria lida). Vem antes do wrapWords. */
+    el1.textContent = "A XOK é um marketplace inteligente que conecta você a fornecedores no mercado livre de energia.";
+
     /* raio: um bloco de cor recortado pelo SVG, ver ".bolt" no CSS. */
     var boltBox = document.querySelector(".hero-bolt");
     var boltEl  = boltBox ? boltBox.querySelector(".bolt") : null;
@@ -2085,22 +2085,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var words = wrapWords(el1);
     if(!words.length) return;
 
-    /* acento neon: da palavra "mercado" até o fim da frase. Procurado pelo texto, não por índice —
-       mexer no fim da frase 1 muda o acento, e é para mudar mesmo. */
-    var accent = [];
-    for(var i=0;i<words.length;i++){
-      if(/^mercado$/i.test(words[i].textContent)){ accent = Array.prototype.slice.call(words, i); break; }
-    }
-
-    /* --hero-accent muda com a media query (neon no desktop, preto no painel neon do celular).
-       O fallback é literal porque o valor acaba escrito inline pelo GSAP: se algo devolvesse um
-       "var(...)" não resolvido, a cor entraria como texto inválido e a frase ficaria sem acento. */
-    function corDeToken(nome){
-      var v = (getComputedStyle(document.documentElement).getPropertyValue(nome)||"").trim();
-      return v.indexOf("var(") === 0 ? "" : v;
-    }
-    var accentColor = corDeToken("--hero-accent") || corDeToken("--neon") || "#E2FF00";
-
     hidden.forEach(function(el){ el.style.opacity = "1"; });
 
     /* sem GSAP ou com motion reduzido: a hero inteira já legível, sem máscara nem animação */
@@ -2108,7 +2092,6 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       el1.style.opacity = "1";
       el2.style.opacity = "1";
       bolts.forEach(function(b){ b.style.opacity = "1"; });
-      accent.forEach(function(w){ w.style.color = accentColor; });
       return;
     }
 
@@ -2122,9 +2105,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     gsap.set(el1,{opacity:1});          /* a partir daqui quem esconde o texto é a máscara */
     gsap.set(lines,{yPercent:118});     /* 118 e não 100: a área de recorte da .hline é maior que a linha */
     gsap.set(el2,{opacity:0,y:18});
-    /* o raio entra deslizando no seu próprio eixo (sobe para a direita), não na vertical dos textos:
-       o x negativo é o que se vê, porque a esquerda dele já está cortada pela caixa. */
-    if(bolts.length) gsap.set(bolts,{opacity:0,x:-34,y:14});
+    /* o raio entra deslizando no seu próprio eixo (desce para a esquerda), não na vertical dos
+       textos: parte de cima e da direita, e o excedente que passa da borda direita some no
+       overflow da caixa — pela esquerda nada se abre, porque o desenho já é maior que o recorte. */
+    if(bolts.length) gsap.set(bolts,{opacity:0,x:34,y:-14});
 
     /* 1,9s: o traço do XOK ainda está terminando de preencher (playMark) e a tagline acabou de
        pousar — a declaração entra por cima dessa cauda, em vez de esperar a intro acabar */
@@ -2135,8 +2119,7 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
          próprio tween: não desloca as posições relativas dos que vêm depois. */
       .to(lines,{yPercent:0,duration:1.0,ease:"expo.out",stagger:0.085,
                  onComplete:function(){ gsap.set(lines,{willChange:"auto"}); }})
-      .to(accent,{color:accentColor,duration:0.45,ease:"none",stagger:0.045},"-=0.42")
-      .to(el2,{opacity:1,y:0,duration:0.9,ease:"power3.out"},"-=0.72");
+      .to(el2,{opacity:1,y:0,duration:0.9,ease:"power3.out"},"-=0.55");
 
     /* o raio fecha a sequência: entra 0,1s DEPOIS do apoio pousar (sem sobreposição, ao contrário
        dos passos anteriores, que se cavalgam), então a leitura é sempre declaração -> apoio -> raio.
