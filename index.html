@@ -7,7 +7,7 @@
      o hash correspondente muda e o navegador passa a BLOQUEAR o script (o site para de funcionar). Nesse caso,
      recompute os hashes e atualize 'script-src' abaixo. Comando: veja o commit/README ou rode o snippet Python que
      extrai o conteúdo entre <script>…</script> e imprime "sha256-" + base64(sha256(conteúdo)). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-6jrQKecVQmghZGQd5BaraMQKzE4hg5yZSr6M8krSqFs='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-LJXcvucBOFEt08B0Q8LNM2rbQ6QrIwdC3GV9DgZMP/Y=' 'sha256-mRGmpYViiBUXOnBQYhummP3ZnJ6Zg3vEyrkUtTwxTF0='; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://cdn.fontshare.com; img-src 'self' data:; connect-src 'self' https://wdeodcypdjjcxjybcvhz.supabase.co; form-action 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <script>
 /* precisa rodar antes de qualquer coisa (primeira linha do <head>): impede o navegador de
@@ -65,9 +65,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 ::selection{background:var(--neon);color:#000}
 :focus-visible{outline:2px solid var(--neon);outline-offset:3px;border-radius:2px}
 
-/* grain */
+/* grain — os keyframes deslocam no máximo 8% do PRÓPRIO elemento, então a sobra em volta da tela
+   só precisa cobrir isso. Com inset:-14% o elemento tem 128% da viewport e 8% dele dá 10,2%, com
+   folga dentro dos 14% de cada lado. O -150% de antes fazia um elemento de 400% x 400% — 16x a
+   área da tela, ~190MB de textura em DPR 3 num celular, para uma animação que anda 10%. */
 .grain{
-  position:fixed;inset:-150%;z-index:9000;pointer-events:none;opacity:.05;
+  position:fixed;inset:-14%;z-index:9000;pointer-events:none;opacity:.05;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   animation:grain 7s steps(6) infinite;will-change:transform;
 }
@@ -76,6 +79,17 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   30%{transform:translate(4%,-6%)}40%{transform:translate(-2%,8%)}50%{transform:translate(-6%,4%)}
   60%{transform:translate(6%,0)}70%{transform:translate(-4%,6%)}80%{transform:translate(2%,-8%)}
   90%{transform:translate(-6%,-2%)}100%{transform:translate(0,0)}
+}
+/* No celular a textura fica PARADA. O que sai daqui não é o grão — é o custo permanente dele:
+   o will-change mantinha uma camada composta do tamanho da tela inteira (128% da viewport, em DPR 3
+   de celular é textura de dezenas de MB) por cima de TODO o conteúdo, e a animação infinita nunca
+   deixava o compositor dormir — a página parada continuava dando trabalho ao aparelho, esquentando
+   e caindo em throttling, que é por que travava cada vez mais quanto mais tempo aberta.
+   Sem animação e sem will-change o grão continua exatamente igual aos olhos (a 5% de opacidade e
+   com a tela na mão ninguém vê o deslocamento de 8%), mas vira uma camada fixa e estática que o
+   compositor reaproveita quadro a quadro em vez de repintar. */
+@media(max-width:860px){
+  .grain{animation:none;will-change:auto}
 }
 
 /* NAV (restored from the previous multi-section version) */
@@ -397,46 +411,75 @@ a.hl:hover{color:var(--muted)}
 .faq-item__panel{overflow:hidden}
 .faq-item__a{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.98rem;line-height:1.65;max-width:64ch;margin:0 0 clamp(1.2rem,2.6vw,1.6rem)}
 
+/* ===== RAIO — peça compartilhada pela abertura do CELULAR (".hero-bolt") e pelo fecho do
+   COMPUTADOR (".boltband"). Um bloco de cor recortado pelo desenho do raio, com a onda de luz
+   correndo por dentro do mesmo recorte.
+
+   Por que não são mais duas <img> sobrepostas com máscaras móveis: a versão anterior movia as
+   frentes da onda mexendo nas PARADAS de um linear-gradient em mask-image (via --wa/--wb). Máscara
+   não é propriedade compositável — mudar o gradiente invalida a PINTURA do elemento, então os dois
+   SVGs (4851x2161, 2133 elipses, um deles ainda com filter:invert(1)) eram re-rasterizados a cada
+   quadro, para sempre. Medido em celular emulado: ~3,6s de rasterização em 10s de página PARADA.
+   Aqui a máscara é ESTÁTICA e quem se move são três blocos irmãos, só com transform — trabalho de
+   compositor, pintura zero.
+
+   A onda é montada em três peças em vez de um gradiente só porque a banda acesa MUDA DE LARGURA
+   ao longo do ciclo (as duas frentes não andam no mesmo ritmo, ver pulsarRaio): esticar um
+   gradiente com scaleX esticaria junto as rampas das pontas, e a frente viraria um borrão largo
+   em vez de uma passagem nítida. Assim o corpo estica (é cor chapada, esticar não deforma nada) e
+   as duas rampas mantêm a largura fixa:
+     .bolt__lead  rampa da frente que ACENDE — apagado -> aceso, encostada na esquerda da banda
+     .bolt__body  o miolo aceso — 1px de base, esticado por scaleX até a largura da banda
+     .bolt__trail rampa da frente que APAGA  — aceso -> apagado, encostada na direita da banda
+   --wf é a largura da rampa. As colunas de bolinhas distam 1,18% da largura (85 colunas), então
+   ~2,8% cobre umas duas colunas: cada bolinha troca de cor INTEIRA, em sequência, em vez de a
+   frente cortar bolinhas ao meio. O +1px das rampas é sobreposição: encosta cada uma no miolo sem
+   deixar fio de cabelo entre os blocos quando as posições caem em fração de pixel.
+   O miolo tem a largura INTEIRA do bloco e só ENCOLHE (scaleX <= 1): esticar 1px centenas de vezes
+   dá o mesmo resultado na tela, mas deixa o compositor à beira de subir a escala de rasterização
+   do bloco. Encolher nunca pede resolução que já não exista.
+   Em repouso as três peças ficam fora do trecho visível e o raio fica como era, sem nada aceso.
+
+   --bolt-rest é a cor do raio parado e --bolt-lit a cor que a onda acende; cada uso define as suas
+   (no celular o raio é preto sobre o painel neon e acende em branco; no computador o fundo é preto,
+   o raio parado é branco e acende em neon). */
+.bolt{display:none;position:relative;overflow:hidden;--wf:2.8%;
+  background:var(--bolt-rest)}
+/* sem suporte a máscara o bloco não teria como ser recortado e viraria um RETÂNGULO de cor por
+   cima do fundo: nesse caso a peça inteira não existe. É decorativa — não some conteúdo nenhum. */
+@supports (mask-image:url("assets/black-bolt-image.svg")) or (-webkit-mask-image:url("assets/black-bolt-image.svg")){
+  .bolt{display:block;
+    -webkit-mask:url("assets/black-bolt-image.svg") no-repeat 0 0/100% 100%;
+            mask:url("assets/black-bolt-image.svg") no-repeat 0 0/100% 100%}
+}
+/* translateX inicial: fora do recorte, para as peças não aparecerem no quadro antes de pulsarRaio
+   assumir. will-change aqui é permanente de propósito — ao contrário das animações de entrada,
+   esta roda em ciclo enquanto o raio estiver na tela. */
+.bolt__lead,.bolt__body,.bolt__trail{position:absolute;top:0;bottom:0;left:0;
+  transform:translate3d(-9999px,0,0);will-change:transform}
+.bolt__lead,.bolt__trail{width:calc(var(--wf) + 1px)}
+.bolt__lead{background:linear-gradient(to right,#0000,var(--bolt-lit))}
+.bolt__trail{background:linear-gradient(to right,var(--bolt-lit),#0000)}
+.bolt__body{width:100%;background:var(--bolt-lit);transform-origin:0 50%}
+
 /* RAIO DE FECHAMENTO (só no computador) — a mesma peça da abertura do celular (".hero-bolt"),
-   ampliada, entre o FAQ e o rodapé. A caixa ocupa a largura inteira da tela e a imagem é
+   ampliada, entre o FAQ e o rodapé. A caixa ocupa a largura inteira da tela e o raio é
    --bolt-scale vezes MAIOR que ela; o margin-left é exatamente a sobra (negativa, porque os dois
    termos têm a mesma base — a caixa), então as bordas DIREITAS coincidem e o que fica de fora é
    sempre a ponta esquerda, cortada pelo overflow:hidden. Ou seja: cresce sempre grudada na direita,
    sem empurrar a largura da página. --bolt-scale é o único botão de tamanho desta seção.
    Duas diferenças em relação ao celular, as duas por causa do fundo: lá o raio é preto sobre o
-   painel neon, aqui o fundo é preto e a cópia em repouso é a INVERTIDA (branca); e a onda que
-   percorre o raio acende em NEON, não em branco. */
+   painel neon e acende em branco, aqui o fundo é preto, o raio parado é branco e acende em NEON. */
 .boltband{display:none} /* exclusiva do computador: no celular esse raio já é a abertura da página */
 @media(min-width:861px){
   .boltband{display:block;background:var(--bg);padding:clamp(1rem,3vh,2rem) 0 clamp(1.5rem,5vh,3rem)}
-  /* --wa/--wb/--wf são as duas frentes do pulso e a largura da frente, idênticas às de ".hero-bolt"
-     (a explicação da mecânica está lá); quem as move é pulsarRaio(). Em repouso, 104% deixa a rampa
-     inteira fora da imagem e o raio fica em paz, sem nada aceso. */
-  .boltband__box{position:relative;overflow:hidden;--bolt-scale:1.25;--wa:104;--wb:104;--wf:2.8%}
-  .boltband__ink,.boltband__glow{--bolt-w:calc(100% * var(--bolt-scale));
-                 display:block;width:var(--bolt-w);max-width:none;
-                 margin-left:calc(100% - var(--bolt-w));
-                 opacity:0} /* a entrada é de setupBoltBand */
-  .boltband__ink{height:auto;filter:invert(1); /* o desenho é preto e o fundo daqui também: inverte para branco */
-    -webkit-mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)));
-            mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)))}
-  /* cópia ACESA: não dá para reaproveitar o truque do celular aqui — invert(1) só sabe produzir
-     branco. Então em vez de uma <img> é um bloco de cor neon recortado pelo próprio SVG.
-     As duas máscaras ficam em elementos aninhados (o pai recorta a janela da onda, o filho recorta
-     o desenho do raio) em vez de duas camadas com mask-composite, que ainda pede prefixo e sintaxe
-     diferente em parte dos navegadores.
-     aspect-ratio é o do viewBox: o bloco fica com exatamente a altura que a <img> ao lado tem. */
-  .boltband__glow{display:none;position:absolute;top:0;left:0;aspect-ratio:4851/2161;
-    -webkit-mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)));
-            mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)))}
-  /* sem suporte a máscara a camada acesa não teria como ser recortada e viraria um retângulo neon
-     por cima do raio: nesse caso ela simplesmente não existe e o raio fica parado, sem pulso. */
-  @supports (mask-image:linear-gradient(#000,#000)) or (-webkit-mask-image:linear-gradient(#000,#000)){
-  .boltband__glow{display:block}
-  }
-  .boltband__glow-in{display:block;width:100%;height:100%;background:var(--neon);
-    -webkit-mask:url("assets/black-bolt-image.svg") no-repeat 0 0/100% 100%;
-            mask:url("assets/black-bolt-image.svg") no-repeat 0 0/100% 100%}
+  .boltband__box{position:relative;overflow:hidden;--bolt-scale:1.25}
+  /* aspect-ratio é o do viewBox: sem <img> não há proporção intrínseca, e é ele que reserva a
+     altura antes de a máscara chegar — a seção não pula quando o SVG carrega. */
+  .boltband .bolt{--bolt-w:calc(100% * var(--bolt-scale));--bolt-rest:#fff;--bolt-lit:var(--neon);
+    width:var(--bolt-w);max-width:none;aspect-ratio:4851/2161;
+    margin-left:calc(100% - var(--bolt-w));
+    opacity:0} /* a entrada é de setupBoltBand */
 }
 
 /* FOOTER (rodapé estático ao fim do fluxo normal da página, logo abaixo do FAQ, fundo preto igual às demais seções) */
@@ -634,39 +677,19 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      puxando-a para a esquerda até as bordas direitas coincidirem, e positiva quando é menor.
      margin-left:auto NÃO serve aqui: com largura maior que a caixa não há espaço livre, o auto
      resolve para 0 e a imagem vaza justamente pela direita, que é a borda que precisa ficar presa. */
-  .hero-bolt img{--bolt-w:min(calc(100% * var(--bolt-scale)), calc(var(--bolt-max-h) * var(--bolt-ratio)));
-                 display:block;height:auto;max-width:none;opacity:0; /* a entrada é de setupHeroMobile */
+  .hero-bolt .bolt{--bolt-w:min(calc(100% * var(--bolt-scale)), calc(var(--bolt-max-h) * var(--bolt-ratio)));
+                 --bolt-rest:#000;--bolt-lit:#fff;
+                 max-width:none;opacity:0; /* a entrada é de setupHeroMobile */
+                 aspect-ratio:var(--bolt-ratio); /* sem <img> não há proporção intrínseca: é ela que segura a altura */
                  width:var(--bolt-w);margin-left:calc(100% - var(--bolt-w) + var(--bolt-shift-x))}
 
-  /* PULSO DO RAIO (só no celular; quem dirige é pulsarRaio, chamado por setupHeroMobile).
-     Uma onda percorre as bolinhas da direita para a esquerda acendendo-as em branco e, logo atrás,
-     uma segunda onda — no mesmo sentido — devolve a cor original.
+  /* PULSO DO RAIO — uma onda percorre as bolinhas da direita para a esquerda acendendo-as em
+     branco e, logo atrás, uma segunda onda — no mesmo sentido — devolve a cor original. A peça e a
+     mecânica das três camadas estão em ".bolt" (lá em cima, compartilhada com o raio do
+     computador); quem move as frentes é pulsarRaio(), chamado por setupHeroMobile.
      NÃO são as 2133 elipses do SVG animadas uma a uma: isso pediria o arquivo embutido no HTML
      (+160KB para todo mundo, inclusive o desktop, que nem mostra o raio) e 2133 escritas de estilo
-     por quadro. São duas cópias sobrepostas da MESMA imagem — a preta e uma branca (invert(1)) —
-     recortadas por máscaras COMPLEMENTARES: --wa é a frente que acende, --wb a que apaga, ambas em
-     % da largura da IMAGEM (que é maior que a caixa: a ponta esquerda está cortada, ver acima).
-     Entre as duas frentes a branca aparece e a preta some.
-     Complementares, e não simplesmente "a branca por cima": duas cópias opacas empilhadas somam a
-     borda suavizada de cada bolinha duas vezes e o ponto ganha um halo cinza. Assim, em cada x, no
-     máximo uma das duas está pintando cheio.
-     --wf é a largura da frente. As colunas de bolinhas distam 1,18% da largura (85 colunas), então
-     ~2,8% cobre umas duas colunas: cada bolinha troca de cor INTEIRA, em sequência, em vez de a
-     frente cortar bolinhas ao meio. Em repouso as duas frentes ficam em 104% — fora da imagem,
-     com a rampa toda para lá do 100% — e o raio fica exatamente como era: preto, sem nada aceso. */
-  .hero-bolt{position:relative;--wa:104;--wb:104;--wf:2.8%}
-  /* a cópia branca só existe se der para recortá-la: sem suporte a máscara ela apareceria inteira,
-     por cima, e o raio ficaria branco para sempre. Sem ela o raio simplesmente não pulsa. */
-  .hero-bolt__glow{display:none}
-  @supports (mask-image:linear-gradient(#000,#000)) or (-webkit-mask-image:linear-gradient(#000,#000)){
-  .hero-bolt__glow{display:block}
-  }
-  .hero-bolt__glow{position:absolute;top:0;left:0;filter:invert(1);
-    -webkit-mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)));
-            mask-image:linear-gradient(to right,#0000 calc(var(--wa) * 1% - var(--wf)),#fff calc(var(--wa) * 1%),#fff calc(var(--wb) * 1%),#0000 calc(var(--wb) * 1% + var(--wf)))}
-  .hero-bolt__ink{
-    -webkit-mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)));
-            mask-image:linear-gradient(to right,#fff calc(var(--wa) * 1% - var(--wf)),#0000 calc(var(--wa) * 1%),#0000 calc(var(--wb) * 1%),#fff calc(var(--wb) * 1% + var(--wf)))}
+     por quadro. */
 
   /* máscara de linha (montada por splitLines, usada pelo setupHeroMobile e pelo setupStepsMobile):
      a linha sobe por baixo de uma janela que a recorta. O padding estende só a área de RECORTE — a
@@ -675,13 +698,25 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      A mesma janela serve aos dois usos: no herói quem sobe por baixo dela é a linha inteira, no
      título dos 4 passos são as letras, uma a uma. */
   .reveal__text .hline,.steps__title .hline{display:block;overflow:hidden;padding:.1em 0 .14em;margin:-.1em 0 -.14em}
-  .reveal__text .hline__in,.steps__title .hline__in{display:block;will-change:transform}
+  .reveal__text .hline__in,.steps__title .hline__in{display:block}
+  /* só no herói é a LINHA que sobe; no título dos 4 passos quem se move são as letras (.char), e
+     a linha é caixa parada — declarar will-change nela seria camada composta à toa. */
+  .reveal__text .hline__in{will-change:transform}
   /* letra a letra no título dos 4 passos (só no celular; os spans só existem depois do
      setupStepsMobile rodar, então sem JS estas regras não pegam nada).
      nowrap na palavra: com as letras em inline-block o navegador passaria a poder quebrar linha
      DENTRO da palavra — as linhas já foram fixadas pelo splitLines e a quebra não deve mudar. */
   .steps__title .word{display:inline-block;white-space:nowrap}
-  .steps__title .char{display:inline-block;will-change:transform}
+  /* sem will-change aqui de propósito: os .char nascem junto com a página (setupStepsMobile roda
+     no go()), então declará-lo no CSS criava ~66 camadas compostas no load e as segurava até o
+     usuário rolar até a seção dos passos — memória de GPU parada durante a página toda para uma
+     animação de 1,2s. Quem liga o will-change agora é o onEnter do trigger, um quadro antes do
+     tween começar, e o onComplete o desliga (ver setupStepsMobile). */
+  .steps__title .char{display:inline-block}
+  /* no celular a etapa entra só com x/opacity (ver setupStepsMobile) — o filter da lista de cima
+     é do scrub do computador, e declará-lo aqui pediria camada com suporte a filtro à toa. */
+  /* mesmo motivo dos .char acima: quem liga é o onEnter, não o CSS. */
+  .stepx{will-change:auto}
 }
 
 /* ===== Viewports muito baixos (paisagem / janelas curtas): evita corte do herói ===== */
@@ -760,13 +795,16 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     </div>
     <!-- RAIO — só aparece no celular (display:none por padrão, ver .hero-bolt no bloco ≤860px):
          fecha o painel neon ocupando a sobra embaixo dos dois textos. Decorativo, sem conteúdo
-         para leitor de tela. width/height são os do viewBox: reservam a proporção antes do SVG
-         carregar, então o painel não pula quando ele chega.
-         São DUAS cópias do mesmo arquivo (mesma URL: o navegador baixa uma vez) — a preta original
-         e uma branca — sobrepostas para o pulso de luz; ver ".hero-bolt" no bloco ≤860px. -->
+         para leitor de tela. A proporção vem do aspect-ratio do CSS, que reserva a altura antes de
+         o SVG da máscara chegar — o painel não pula quando ele carrega.
+         O desenho não é mais uma <img>: é um bloco de cor recortado pelo SVG, com as três peças da
+         onda de luz por dentro do mesmo recorte (ver ".bolt" no CSS). -->
     <div class="hero-bolt" aria-hidden="true">
-      <img class="hero-bolt__glow" src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
-      <img class="hero-bolt__ink" src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" decoding="async">
+      <span class="bolt">
+        <span class="bolt__body"></span>
+        <span class="bolt__lead"></span>
+        <span class="bolt__trail"></span>
+      </span>
     </div>
     <div class="scrolldown" id="scrollDown" aria-hidden="true">
       <span class="scrolldown__mouse"><span class="scrolldown__dot"></span></span>
@@ -1022,14 +1060,15 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
 <!-- RAIO DE FECHAMENTO — só no computador (display:none por padrão, ver ".boltband" no CSS):
      a mesma peça da abertura do celular, ampliada e presa na direita da tela, fechando a página
-     antes do rodapé. Decorativo, sem conteúdo para leitor de tela. width/height são os do viewBox:
-     reservam a proporção antes do SVG carregar, então a seção não pula de altura quando ele chega.
-     Duas camadas sobrepostas do mesmo desenho: a <img> em repouso (invertida para branco) e, por
-     cima, um bloco neon recortado pelo SVG — é ele que acende na passagem da onda. -->
+     antes do rodapé. Decorativo, sem conteúdo para leitor de tela. A proporção vem do aspect-ratio
+     do CSS, não de width/height de uma <img>: a seção não pula de altura quando o SVG chega. -->
 <section class="boltband" aria-hidden="true">
   <div class="boltband__box">
-    <img class="boltband__ink" src="assets/black-bolt-image.svg" alt="" width="4851" height="2161" loading="lazy" decoding="async">
-    <span class="boltband__glow"><span class="boltband__glow-in"></span></span>
+    <span class="bolt">
+      <span class="bolt__body"></span>
+      <span class="bolt__lead"></span>
+      <span class="bolt__trail"></span>
+    </span>
   </div>
 </section>
 
@@ -1241,6 +1280,15 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
   var IS_MOBILE = window.matchMedia("(max-width:860px)").matches; /* mesmo breakpoint do menu móvel (≤860px) */
   var hasGSAP = !!window.gsap;
   var hasScrollTrigger = hasGSAP && !!window.ScrollTrigger;
+
+  /* No celular a barra de endereço aparece e some DURANTE a rolagem. Isso muda window.innerHeight
+     e dispara "resize", e o padrão do ScrollTrigger nesse evento é um refresh() completo: ele
+     re-mede TODOS os triggers vivos com getBoundingClientRect, forçando reflow síncrono do
+     documento inteiro no meio do gesto do dedo. É a causa clássica do travamento em celular —
+     acontece dezenas de vezes por rolagem, sempre no pior momento possível.
+     ignoreMobileResize ignora só a variação VERTICAL de viewport em aparelhos de toque; a troca de
+     orientação continua provocando refresh, que é a única remedição que realmente precisa existir. */
+  if(hasScrollTrigger) ScrollTrigger.config({ ignoreMobileResize: true });
 
   /* separa um bloco de texto em palavras, preservando os espaços como nós de texto entre os spans.
      compartilhado pelo setupReveal (neon palavra a palavra) e pelo setupSteps (stagger de entrada). */
@@ -2029,11 +2077,10 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
     var hidden = [document.getElementById("revealText2"), document.getElementById("revealText3")].filter(Boolean);
     if(!el1 || !el2) return;
 
-    /* raio: duas cópias sobrepostas (preta + branca), ver ".hero-bolt" no CSS do bloco ≤860px.
-       As duas entram juntas, com a mesma animação — é uma imagem só aos olhos. */
+    /* raio: um bloco de cor recortado pelo SVG, ver ".bolt" no CSS. */
     var boltBox = document.querySelector(".hero-bolt");
-    var boltInk = boltBox ? boltBox.querySelector(".hero-bolt__ink") : null;
-    var bolts   = boltBox ? Array.prototype.slice.call(boltBox.querySelectorAll("img")) : [];
+    var boltEl  = boltBox ? boltBox.querySelector(".bolt") : null;
+    var bolts   = boltEl ? [boltEl] : [];
 
     var words = wrapWords(el1);
     if(!words.length) return;
@@ -2083,7 +2130,11 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
        pousar — a declaração entra por cima dessa cauda, em vez de esperar a intro acabar */
     var tlHero = gsap.timeline({delay:1.9});
     tlHero
-      .to(lines,{yPercent:0,duration:1.0,ease:"expo.out",stagger:0.085})
+      /* o will-change do CSS existe para a subida não criar camada no primeiro quadro; passada
+         a subida ele vira custo puro (9 camadas paradas), então sai aqui. O onComplete é do
+         próprio tween: não desloca as posições relativas dos que vêm depois. */
+      .to(lines,{yPercent:0,duration:1.0,ease:"expo.out",stagger:0.085,
+                 onComplete:function(){ gsap.set(lines,{willChange:"auto"}); }})
       .to(accent,{color:accentColor,duration:0.45,ease:"none",stagger:0.045},"-=0.42")
       .to(el2,{opacity:1,y:0,duration:0.9,ease:"power3.out"},"-=0.72");
 
@@ -2094,43 +2145,62 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
 
     /* PULSO — a onda de luz que percorre o raio, 1,3s depois de ele pousar. A mecânica é
        compartilhada com o raio de fechamento do computador: ver pulsarRaio(). */
-    if(boltBox && boltInk) tlHero.call(function(){ pulsarRaio(boltBox, boltInk); }, null, "+=1.3");
+    if(boltBox && boltEl) tlHero.call(function(){ pulsarRaio(boltBox, boltEl); }, null, "+=1.3");
   }
 
   /* PULSO DO RAIO — a onda de luz que percorre o raio em ciclos, usada pela abertura do celular
-     (setupHeroMobile) e pelo raio de fechamento do computador (setupBoltBand). A mecânica das
-     máscaras está no CSS (".hero-bolt" e ".boltband"); aqui fica só o movimento das duas frentes.
-     `box` é a caixa que corta a imagem e carrega as variáveis; `img` é a cópia em repouso, medida
-     para saber onde a imagem começa e termina em relação ao recorte.
+     (setupHeroMobile) e pelo raio de fechamento do computador (setupBoltBand). A peça e as três
+     camadas da onda estão no CSS (".bolt"); aqui fica só o movimento das duas frentes.
+     `box` é a caixa que corta o raio; `bolt` é o bloco recortado, medido para saber onde o desenho
+     começa e termina em relação a esse recorte.
      Um tween só, de 0 a 1, com as duas frentes lidas desse mesmo progresso: a que ACENDE ocupa
      0 -> 0,58 e a que APAGA 0,45 -> 1. O recobrimento é o pedido: a volta começa quando a ida já
      andou 78% do caminho, com a maior parte das bolinhas acesa. Ler as duas de um progresso comum
      (em vez de dois tweens) é o que deixa os limites serem RE-MEDIDOS a cada ciclo sem reconstruir
-     nada — a imagem é maior que a caixa e redimensionar/girar muda o quanto sobra cortado à
-     esquerda, e a onda tem de percorrer o trecho VISÍVEL, não o arquivo inteiro.
+     nada — o desenho é maior que a caixa e redimensionar/girar muda o quanto sobra cortado à
+     esquerda, e a onda tem de percorrer o trecho VISÍVEL, não o desenho inteiro.
      As sobras de 6% nas duas pontas põem a rampa da frente fora da área visível, senão o ciclo
-     começaria e terminaria com uma listra meio acesa na borda. */
-  function pulsarRaio(box, img){
-    if(!box || !img || !hasGSAP) return;
-    var lim = {ini:104, fim:-6};
+     começaria e terminaria com uma listra meio acesa na borda.
+     As posições saem em PX do canto esquerdo do bloco (antes eram % da largura, que era o que a
+     máscara pedia) porque agora o que anda é transform: a medição é a mesma, só a unidade muda.
+     Escrito direto em style.transform, sem gsap.set: são três escritas por quadro e nenhuma
+     precisa passar pelo parser de propriedades do GSAP. */
+  function pulsarRaio(box, bolt){
+    if(!box || !bolt || !hasGSAP) return;
+    var lead  = bolt.querySelector(".bolt__lead"),
+        body  = bolt.querySelector(".bolt__body"),
+        trail = bolt.querySelector(".bolt__trail");
+    if(!lead || !body || !trail) return;
+
+    var lim = {ini:0, fim:0, wf:0, w:1};
     function medir(){
-      var cx = box.getBoundingClientRect(), im = img.getBoundingClientRect();
-      if(!im.width) return;
-      lim.ini = Math.min(104, (cx.right - im.left) / im.width * 100 + 6);
-      lim.fim = Math.max(0, (cx.left - im.left) / im.width * 100) - 6;
+      var cx = box.getBoundingClientRect(), bx = bolt.getBoundingClientRect();
+      if(!bx.width) return;
+      var sobra = bx.width * 0.06;
+      lim.w   = bx.width;
+      lim.wf  = bx.width * 0.028;              /* mesma largura de rampa do --wf do CSS */
+      lim.ini = Math.min(bx.width * 1.04, cx.right - bx.left + sobra);
+      lim.fim = Math.max(0, cx.left - bx.left) - sobra;
     }
-    function frente(p){ /* p de 0 a 1 no trecho da frente -> posição em % da largura da imagem */
+    function frente(p){ /* p de 0 a 1 no trecho da frente -> posição em px a partir da esquerda do bloco */
       p = p < 0 ? 0 : (p > 1 ? 1 : p);
       return lim.ini + (lim.fim - lim.ini) * p;
     }
+    /* a que ACENDE vai na frente (fica à ESQUERDA da banda, o sentido é da direita para a esquerda)
+       e a que APAGA vem atrás, à direita: a banda acesa é o intervalo entre as duas. O miolo tem a
+       largura do bloco, então o scaleX é a fração dele que a banda ocupa — sempre <= 1. */
+    function pintar(p){
+      var a = frente(p / 0.58), b = frente((p - 0.45) / 0.55);
+      lead.style.transform  = "translate3d(" + (a - lim.wf) + "px,0,0)";
+      body.style.transform  = "translate3d(" + a + "px,0,0) scaleX(" + (Math.max(0, b - a) / lim.w) + ")";
+      trail.style.transform = "translate3d(" + (b - 1) + "px,0,0)";
+    }
     medir();
+    pintar(0); /* parte do repouso à direita, em vez do translate de fuga que o CSS deixa */
     var t = {p:0};
     var tl = gsap.timeline({repeat:-1, repeatDelay:2.6, onRepeat:medir});
-    tl.to(t,{p:1,duration:2.6,ease:"none",onUpdate:function(){
-      box.style.setProperty("--wa", frente(t.p / 0.58));
-      box.style.setProperty("--wb", frente((t.p - 0.45) / 0.55));
-    }});
-    /* fora da tela o ciclo não roda: sem isto o timeline seguiria repintando a máscara com o raio
+    tl.to(t,{p:1,duration:2.6,ease:"none",onUpdate:function(){ pintar(t.p); }});
+    /* fora da tela o ciclo não roda: sem isto o timeline seguiria movendo a onda com o raio
        longe do campo de visão, de graça. */
     if("IntersectionObserver" in window){
       new IntersectionObserver(function(es){
@@ -2143,40 +2213,37 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
      rodapé, ampliada e grudada na direita da tela (a geometria é toda do CSS, ver ".boltband").
      Mesma entrada do celular — o raio desliza no seu próprio eixo, subindo para a direita; o x
      negativo é o que se vê, porque a esquerda dele já está cortada pela caixa — e o mesmo pulso.
-     Duas adaptações: as duas camadas não são mais duas <img> (a acesa é um bloco neon recortado
-     pelo SVG, ver o CSS), e o disparo é por scroll, não por tempo: esta seção está no fim da
-     página, então ela só anima quando chega à tela, uma única vez.
+     Uma adaptação: o disparo é por scroll, não por tempo — esta seção está no fim da página, então
+     ela só anima quando chega à tela, uma única vez.
      Como IS_MOBILE é lido uma vez no load, girar um tablet de retrato para paisagem deixa a seção
-     visível pelo CSS mas sem animação — as duas camadas ficam então em opacidade 1 pelo caminho de
-     baixo, e o que se vê é o raio parado, e não uma faixa vazia. */
+     visível pelo CSS mas sem animação — o raio fica então em opacidade 1 pelo caminho de baixo, e
+     o que se vê é ele parado, e não uma faixa vazia. */
   function setupBoltBand(){
     var box = document.querySelector(".boltband__box");
     if(!box) return;
-    var ink  = box.querySelector(".boltband__ink");
-    var glow = box.querySelector(".boltband__glow");
-    var pecas = [ink, glow].filter(Boolean);
-    if(!ink) return;
+    var bolt = box.querySelector(".bolt");
+    if(!bolt) return;
 
     /* no celular a seção nem existe (display:none) — mas se o CSS de computador voltar numa
        rotação, o raio precisa estar visível em vez de invisível pelo opacity:0 do CSS */
     if(IS_MOBILE || !hasGSAP || !hasScrollTrigger || REDUCE){
-      pecas.forEach(function(el){ el.style.opacity = "1"; });
+      bolt.style.opacity = "1";
       return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    gsap.set(pecas,{opacity:0,x:-70,y:28});
+    gsap.set(bolt,{opacity:0,x:-70,y:28});
 
     ScrollTrigger.create({
       trigger:box,
       start:"top 85%",
       once:true,
       onEnter:function(){
-        /* o pulso só começa depois da entrada terminar: pulsarRaio mede a imagem com
+        /* o pulso só começa depois da entrada terminar: pulsarRaio mede o bloco com
            getBoundingClientRect, que enxerga o deslocamento do x enquanto ele existe. */
         gsap.timeline()
-          .to(pecas,{opacity:1,x:0,y:0,duration:1.1,ease:"power3.out"})
-          .call(function(){ pulsarRaio(box, ink); }, null, "+=0.6");
+          .to(bolt,{opacity:1,x:0,y:0,duration:1.1,ease:"power3.out"})
+          .call(function(){ pulsarRaio(box, bolt); }, null, "+=0.6");
       }
     });
   }
@@ -2415,7 +2482,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
         onEnter:function(){
           /* stagger curto: com ~70 letras, 0,016s dá pouco menos de 1,2s de varredura — a última
              letra ainda entra enquanto as primeiras acabam de assentar, e a frase lê como uma só. */
-          gsap.to(letras,{yPercent:0,duration:0.9,ease:"expo.out",stagger:0.016});
+          gsap.set(letras,{willChange:"transform"}); /* camada criada aqui, um quadro antes do movimento */
+          gsap.to(letras,{yPercent:0,duration:0.9,ease:"expo.out",stagger:0.016,
+                          onComplete:function(){ gsap.set(letras,{willChange:"auto"}); }});
         }
       });
     }
@@ -2426,7 +2495,9 @@ textarea.wf__input{resize:vertical;min-height:110px;line-height:1.5;font-family:
       ScrollTrigger.create({
         trigger: block, start:"top 86%", once:true,
         onEnter:function(){
-          gsap.to(block,{xPercent:0,opacity:1,duration:1.1,ease:"power3.out"});
+          gsap.set(block,{willChange:"transform,opacity"});
+          gsap.to(block,{xPercent:0,opacity:1,duration:1.1,ease:"power3.out",
+                         onComplete:function(){ gsap.set(block,{willChange:"auto"}); }});
         }
       });
     });
