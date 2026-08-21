@@ -74,12 +74,6 @@ a{color:inherit}
   font-family:var(--f-body);font-weight:500;color:var(--muted);
   font-size:clamp(1.1rem,1.5vw,1.24rem);line-height:1.62;margin:clamp(1.2rem,3vh,1.8rem) 0 0;
 }
-.doc__meta{
-  display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;
-  font-family:var(--f-body);font-weight:500;font-size:.98rem;
-  color:var(--faint);margin:clamp(1.4rem,4vh,2rem) 0 0;
-  padding-top:clamp(1.4rem,4vh,2rem);border-top:1px solid var(--line);
-}
 
 /* ---- ÍNDICE ---- */
 .toc{
@@ -141,23 +135,6 @@ thead th{
 tbody th{font-weight:600;color:var(--ink);white-space:nowrap}
 tbody td{font-weight:400;color:var(--muted)}
 tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
-
-/* ---- RODAPÉ ---- */
-/* fica dentro de .doc__inner, alinhado à coluna de texto */
-.doc__foot{
-  margin:clamp(3.5rem,9vh,5.5rem) 0 0;
-  padding-top:clamp(1.6rem,4vh,2.2rem);border-top:1px solid var(--line);
-  display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;
-}
-.doc__foot p,.doc__foot a{
-  font-family:var(--f-body);font-weight:500;font-size:.94rem;color:var(--faint);margin:0;text-decoration:none;
-}
-.doc__foot a{transition:color .3s}
-.doc__foot a:hover{color:var(--ink)}
-
-@media(max-width:520px){
-  .doc__meta{flex-direction:column;gap:.4rem}
-}
 </style>
 </head>
 <body>
@@ -173,12 +150,6 @@ tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
 
     <h1 class="doc__title">Política de Privacidade</h1>
     <p class="doc__intro">Como a XOK, atuando sobre o CNPJ 41.720.700/0001-38, pertencente à HUB 22 LTDA, trata os dados pessoais de quem interage com o site xokenergia.com.</p>
-    <div class="doc__meta">
-      <span>Versão 0.1</span>
-      <span>Última atualização 17 de agosto de 2026</span>
-      <span>Aplica-se a xokenergia.com</span>
-    </div>
-
     <nav class="toc" aria-label="Índice da política">
       <h2 class="toc__title">Nesta política</h2>
       <ol class="toc__list">
@@ -363,11 +334,6 @@ tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
       <h2 class="sec__title">14. Fale com a gente</h2>
       <p>Para dúvidas, solicitações sobre os seus dados, revogação de consentimento ou oposição ao tratamento, entre em contato pelo e-mail <a href="mailto:rodrigo@cross.business">rodrigo@cross.business</a>.</p>
     </section>
-
-    <footer class="doc__foot">
-      <p>&copy; 2026 XOK. Desenvolvida pela Hub22.</p>
-      <a href="../">xokenergia.com</a>
-    </footer>
 
   </div>
 </main>
